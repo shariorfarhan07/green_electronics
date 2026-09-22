@@ -534,6 +534,81 @@ a:hover { color: var(--accent-dark); }
 .wb-admin__form { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.75rem; max-width: 760px; }
 @media (min-width: 768px) { .wb-admin__form { padding: 2.25rem; } }
 .wb-admin__form .form-group label { font-weight: 600; font-size: .85rem; margin-bottom: .4rem; display: block; }
+
+// ---- Admin forms: grouped fieldsets -------------------------------------
+.wb-admin__form-wrap { max-width: 900px; }
+.wb-admin__fieldset {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  margin-bottom: 1.15rem; overflow: hidden;
+}
+.wb-admin__fieldset-head {
+  display: flex; align-items: flex-start; gap: .8rem;
+  padding: 1.05rem 1.4rem; border-bottom: 1px solid var(--line); background: var(--paper-alt);
+  h4 { margin: 0; font-size: .97rem; font-weight: 700; }
+  p { margin: .15rem 0 0; font-size: .8rem; color: var(--ink-soft); }
+  .wb-icon { color: var(--accent); margin-top: .15rem; flex-shrink: 0; }
+}
+.wb-admin__fieldset-body { padding: 1.4rem; }
+.wb-admin__fieldset-body .form-group { margin-bottom: 1.05rem; }
+.wb-admin__fieldset-body .form-group:last-child { margin-bottom: 0; }
+.wb-admin__fieldset-body label { font-weight: 600; font-size: .84rem; margin-bottom: .35rem; display: block; }
+.wb-admin__req { color: var(--danger); font-weight: 700; margin-left: .15rem; }
+.wb-admin__hint { display: block; margin-top: .3rem; font-size: .76rem; color: var(--ink-faint); line-height: 1.45; }
+
+.wb-admin__form-actions {
+  position: sticky; bottom: 0; z-index: 5;
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  padding: .9rem 1.4rem; background: rgba(255,255,255,.94); backdrop-filter: blur(8px);
+  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-md);
+  span { margin-left: auto; font-size: .78rem; color: var(--ink-faint); }
+}
+
+// Inputs: consistent sizing plus a proper chevron on native selects
+.wb-admin__fieldset-body .form-control,
+.wb-admin__cat-head .form-control,
+.wb-admin__cat-child .form-control { width: 100%; font-size: .88rem; }
+select.form-control {
+  appearance: none; -webkit-appearance: none; padding-right: 2.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b5e66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right .7rem center;
+}
+
+// ---- Searchable select (progressive enhancement over a native <select>) ---
+.wb-select { position: relative; }
+.wb-select__toggle {
+  width: 100%; text-align: left; background: #fff; cursor: pointer;
+  display: flex; align-items: center; gap: .5rem;
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm); padding: .65rem .9rem;
+  font-family: var(--font-sans); font-size: .88rem; color: var(--ink);
+  &:hover { border-color: var(--line-strong); }
+  .wb-icon { margin-left: auto; color: var(--ink-faint); flex-shrink: 0; }
+}
+.wb-select.is-open .wb-select__toggle { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.wb-select__placeholder { color: var(--ink-faint); }
+.wb-select__panel {
+  display: none; position: absolute; z-index: 60; left: 0; right: 0; top: calc(100% + .35rem);
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow-md); padding: .5rem; max-height: 320px; overflow: hidden;
+}
+.wb-select.is-open .wb-select__panel { display: block; }
+.wb-select__search {
+  width: 100%; border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  padding: .5rem .7rem; font-family: var(--font-sans); font-size: .85rem; margin-bottom: .4rem;
+  &:focus { outline: none; border-color: var(--accent); }
+}
+.wb-select__list { max-height: 244px; overflow-y: auto; }
+.wb-select__group {
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 700;
+  color: var(--ink-faint); padding: .55rem .6rem .25rem;
+}
+.wb-select__option {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  padding: .45rem .6rem; border-radius: 8px; font-family: var(--font-sans);
+  font-size: .85rem; color: var(--ink-soft); cursor: pointer;
+  &:hover, &.is-active { background: var(--paper-alt); color: var(--ink); }
+  &.is-selected { background: var(--accent-soft); color: var(--accent-dark); font-weight: 600; }
+}
+.wb-select__empty { padding: .8rem .6rem; font-size: .83rem; color: var(--ink-faint); }
 .wb-admin__actions { display: flex; gap: .4rem; flex-wrap: wrap; }
 .wb-admin__icon-btn { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--paper-alt); color: var(--ink); border: 1px solid var(--line); font: inherit; cursor: pointer; }
 .wb-admin__icon-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }

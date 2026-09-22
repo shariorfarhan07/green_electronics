@@ -61,8 +61,7 @@
                     </td>
                     <td>
                         <div class="wb-admin__actions">
-                            <a href="{{route('admin.products.images.index',$product->id)}}" class="wb-admin__icon-btn" title="Manage Images"><x-icon name="image" :size="14" /></a>
-                            <a href="{{route('admin.products.edit',$product->id)}}" class="wb-admin__icon-btn" title="Edit"><x-icon name="edit" :size="14" /></a>
+                            <a href="{{route('admin.products.edit',$product->id)}}" class="wb-admin__icon-btn" title="Edit product &amp; images"><x-icon name="edit" :size="14" /></a>
                             <form action="{{ route('admin.products.destroy', $product->id) }}" method="post" onsubmit="return confirm('Delete this product?');" style="display:inline;">
                                 @csrf
                                 @method('DELETE')

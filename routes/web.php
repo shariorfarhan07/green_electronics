@@ -70,8 +70,8 @@ Route::prefix('admin')->middleware('restictToAdmin')->group(function () {
     Route::put('products/{id}', ['uses' => 'Admin\AdminProductController@update', 'as' => 'admin.products.update']);
     Route::delete('products/{id}', ['uses' => 'Admin\AdminProductController@destroy', 'as' => 'admin.products.destroy']);
 
-    // multi-image management for a product (drag-and-drop upload)
-    Route::get('products/{id}/images', ['uses' => 'Admin\AdminProductController@images', 'as' => 'admin.products.images.index']);
+    // Images are managed inline on the product edit screen, so there is no
+    // separate index route — only the upload and delete actions.
     Route::post('products/{id}/images', ['uses' => 'Admin\AdminProductController@storeImage', 'as' => 'admin.products.images.store']);
     Route::delete('products/images/{imageId}', ['uses' => 'Admin\AdminProductController@destroyImage', 'as' => 'admin.products.images.destroy']);
 

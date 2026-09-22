@@ -28,11 +28,6 @@ class AdminProductController extends Controller
         return view('admin.editProductForm', ['product' => $product, 'categories' => $categories]);
     }
 
-    public function images($id){
-        $product = Product::with('images')->findOrFail($id);
-        return view('admin.manageProductImages', ['product' => $product]);
-    }
-
     public function storeImage(Request $request, $id){
         $product = Product::findOrFail($id);
 
@@ -54,7 +49,7 @@ class AdminProductController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.products.images.index', $product->id)->withsuccess('Image uploaded.');
+        return redirect()->route('admin.products.edit', $product->id)->withsuccess('Image uploaded.');
     }
 
     public function destroyImage($imageId){
@@ -66,7 +61,7 @@ class AdminProductController extends Controller
         }
         $image->delete();
 
-        return redirect()->route('admin.products.images.index', $productId)->withsuccess('Image removed.');
+        return redirect()->route('admin.products.edit', $productId)->withsuccess('Image removed.');
     }
 
    public function create(){

@@ -15,41 +15,49 @@
     </div>
 @endif
 
-<div class="wb-admin__panel" style="padding:1.5rem;margin-bottom:1.5rem;">
-    <h4 class="mb-3">Add Category</h4>
-    <form action="{{ route('admin.categories.store') }}" method="post">
-        @csrf
-        <div class="row">
-            <div class="col-md-3 form-group">
-                <label for="name">Name</label>
-                <input type="text" class="form-control" name="name" id="name" placeholder="e.g. Stepper Motor" required>
-            </div>
-            <div class="col-md-3 form-group">
-                <label for="parent_id">Section</label>
-                <select class="form-control" name="parent_id" id="parent_id">
-                    <option value="">— Top-level section —</option>
-                    @foreach($roots as $root)
-                        <option value="{{ $root->id }}">{{ $root->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3 form-group">
-                <label for="blurb">Short Description</label>
-                <input type="text" class="form-control" name="blurb" id="blurb" placeholder="Shown in the mega menu">
-            </div>
-            <div class="col-md-2 form-group">
-                <label for="icon">Icon</label>
-                <select class="form-control" name="icon" id="icon">
-                    @foreach($icons as $icon)
-                        <option value="{{ $icon }}">{{ $icon }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-1 form-group d-flex align-items-end">
-                <button type="submit" class="wb-btn wb-btn--accent" style="width:100%;">Add</button>
-            </div>
+<div class="wb-admin__fieldset" style="max-width:none;">
+    <div class="wb-admin__fieldset-head">
+        <x-icon name="plus" :size="18" />
+        <div>
+            <h4>Add Category</h4>
+            <p>Leave the section blank to create a new top-level section.</p>
         </div>
-    </form>
+    </div>
+    <div class="wb-admin__fieldset-body">
+        <form action="{{ route('admin.categories.store') }}" method="post">
+            @csrf
+            <div class="row">
+                <div class="col-md-3 form-group">
+                    <label for="name">Name <span class="wb-admin__req">*</span></label>
+                    <input type="text" class="form-control" name="name" id="name" placeholder="e.g. Stepper Motor" required>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label for="parent_id">Section</label>
+                    <select class="form-control" name="parent_id" id="parent_id" data-searchable data-search-placeholder="Search sections…">
+                        <option value="">— New top-level section —</option>
+                        @foreach($roots as $root)
+                            <option value="{{ $root->id }}">{{ $root->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
+                    <label for="blurb">Short Description</label>
+                    <input type="text" class="form-control" name="blurb" id="blurb" placeholder="Shown in the mega menu">
+                </div>
+                <div class="col-md-2 form-group">
+                    <label for="icon">Icon</label>
+                    <select class="form-control" name="icon" id="icon" data-searchable data-search-placeholder="Search icons…">
+                        @foreach($icons as $icon)
+                            <option value="{{ $icon }}">{{ $icon }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-1 form-group d-flex align-items-end">
+                    <button type="submit" class="wb-btn wb-btn--accent" style="width:100%;">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="wb-admin__panel">
