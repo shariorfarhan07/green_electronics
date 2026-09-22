@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Category;
+use App\ContactMessage;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -40,6 +41,11 @@ class AppServiceProvider extends ServiceProvider
             }
             $cart=Session::get('cart');
             $view->with('userdata',Auth::user())->with("cartforall",$cart)->with('navCategories', $navCategories);
+        });
+
+        // Scoped to the admin shell so the storefront never pays for this query.
+        View::composer('lay.admin', function ($view) {
+            $view->with('unreadMessages', ContactMessage::unread()->count());
         });
     }
 }

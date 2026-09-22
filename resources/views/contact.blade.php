@@ -22,24 +22,39 @@
             <div class="col-lg-7">
                 <div class="wb-summary wb-contact-form">
                     <div class="wb-summary__title">Send Us a Message</div>
-                    <form action="#" method="post">
+
+                    @if (session('success'))
+                        <div class="alert alert-success">{{ session('success') }}</div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('contact.store') }}" method="post">
+                        @csrf
                         <div class="row">
                             <div class="col-md-6 wb-field">
                                 <label>Your Name</label>
-                                <input type="text" name="name" class="form-control" placeholder="Your name" required>
+                                <input type="text" name="name" class="form-control" placeholder="Your name" value="{{ old('name') }}" required>
                             </div>
                             <div class="col-md-6 wb-field">
                                 <label>Email</label>
-                                <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+                                <input type="email" name="email" class="form-control" placeholder="you@example.com" value="{{ old('email') }}" required>
                             </div>
                         </div>
                         <div class="wb-field">
                             <label>Subject</label>
-                            <input type="text" name="subject" class="form-control" placeholder="Subject" required>
+                            <input type="text" name="subject" class="form-control" placeholder="Subject" value="{{ old('subject') }}" required>
                         </div>
                         <div class="wb-field">
                             <label>Message</label>
-                            <textarea name="message" rows="5" class="form-control" placeholder="Write your message"></textarea>
+                            <textarea name="message" rows="5" class="form-control" placeholder="Write your message" required>{{ old('message') }}</textarea>
                         </div>
                         <button type="submit" class="wb-btn wb-btn--accent">Send Message</button>
                     </form>

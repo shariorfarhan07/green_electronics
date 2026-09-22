@@ -18,9 +18,8 @@ Route::get('/', ["uses"=>"ProductsController@index","as"=>'homepage']);
 Route::get('about', function () {
     return view('about');
 })->name('about');
-Route::get('contact', function () {
-    return view('contact');
-})->name('contact');
+Route::get('contact', ['uses' => 'ContactController@show', 'as' => 'contact']);
+Route::post('contact', ['uses' => 'ContactController@store', 'as' => 'contact.store']);
 Route::get('coming-soon', function () {
     return view('comingsoon');
 })->name('coming-soon');
@@ -74,6 +73,11 @@ Route::prefix('admin')->middleware('restictToAdmin')->group(function () {
     // separate index route — only the upload and delete actions.
     Route::post('products/{id}/images', ['uses' => 'Admin\AdminProductController@storeImage', 'as' => 'admin.products.images.store']);
     Route::delete('products/images/{imageId}', ['uses' => 'Admin\AdminProductController@destroyImage', 'as' => 'admin.products.images.destroy']);
+
+    // contact form submissions
+    Route::get('messages', ['uses' => 'Admin\AdminMessageController@index', 'as' => 'admin.messages.index']);
+    Route::get('messages/{id}', ['uses' => 'Admin\AdminMessageController@show', 'as' => 'admin.messages.show']);
+    Route::delete('messages/{id}', ['uses' => 'Admin\AdminMessageController@destroy', 'as' => 'admin.messages.destroy']);
 
     // category taxonomy management
     Route::get('categories', ['uses' => 'Admin\AdminCategoryController@index', 'as' => 'admin.categories.index']);

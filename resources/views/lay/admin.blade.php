@@ -31,8 +31,15 @@
                 <x-icon name="filter" :size="17" /> Categories
             </a>
             <div class="wb-admin__nav-group-title">Sales</div>
-            <a href="{{ route('admin.orders.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.orders.index') ? 'is-active' : '' }}">
+            <a href="{{ route('admin.orders.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.orders.*') ? 'is-active' : '' }}">
                 <x-icon name="box" :size="17" /> Orders
+            </a>
+            <div class="wb-admin__nav-group-title">Inbox</div>
+            <a href="{{ route('admin.messages.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}">
+                <x-icon name="mail" :size="17" /> Messages
+                @if(($unreadMessages ?? 0) > 0)
+                    <span class="wb-admin__nav-count">{{ $unreadMessages }}</span>
+                @endif
             </a>
         </nav>
         <div class="wb-admin__sidebar-foot">

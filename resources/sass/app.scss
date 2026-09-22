@@ -505,6 +505,11 @@ a:hover { color: var(--accent-dark); }
 .wb-admin__nav { flex: 1; padding: .5rem .9rem; overflow-y: auto; }
 .wb-admin__nav-group-title { padding: 1.1rem .9rem .4rem; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.35); font-weight: 700; }
 .wb-admin__nav-link { display: flex; align-items: center; gap: .75rem; padding: .7rem .9rem; border-radius: var(--radius-sm); color: rgba(255,255,255,.72); font-weight: 500; font-size: .89rem; margin-bottom: .15rem; }
+.wb-admin__nav-count {
+  margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: var(--accent); color: #fff; font-size: .7rem; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
 .wb-admin__nav-link:hover { background: rgba(255,255,255,.07); color: #fff; }
 .wb-admin__nav-link.is-active { background: var(--accent); color: #fff; }
 .wb-admin__sidebar-foot { padding: 1rem 1.4rem 1.4rem; border-top: 1px solid rgba(255,255,255,.08); }
