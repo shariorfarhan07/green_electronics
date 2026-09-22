@@ -1,178 +1,63 @@
-
 <!DOCTYPE html>
-<!--
-This is a starter template page. Use this page to start your new project from
-scratch. This page gets rid of all links and provides the needed markup only.
--->
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-
-    <title> admin ElectonicsBagBD.com</title>
-
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="{{asset('css/all.min.css')}}">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="{{asset('css/adminlte.min.css')}}">
-    <!-- Google Font: Source Sans Pro -->
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <title>Admin &middot; Green Electronics</title>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
-<body class="hold-transition sidebar-mini">
-<div class="wrapper">
+<body>
 
-    <!-- Navbar -->
-    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-        <!-- Left navbar links -->
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-            </li>
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="{{route('home')}}" class="nav-link">Home</a>
-            </li>
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="#" class="nav-link">Contact</a>
-            </li>
-        </ul>
+<div class="wb-admin">
+    <div class="wb-offcanvas__backdrop" id="wb-admin-sidebar-backdrop"></div>
 
-        <!-- SEARCH FORM -->
-        <form class="form-inline ml-3">
-            <div class="input-group input-group-sm">
-                <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
-                <div class="input-group-append">
-                    <button class="btn btn-navbar" type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </div>
-        </form>
-
-
-            <!-- Notifications Dropdown Menu -->
-
-    </nav>
-    <!-- /.navbar -->
-
-    <!-- Main Sidebar Container -->
-    <aside class="main-sidebar sidebar-dark-primary elevation-4">
-        <!-- Brand Logo -->
-        <a href="index3.html" class="brand-link">
-
-            <span class="brand-text font-weight-light">DashBoard</span>
-        </a>
-
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <!-- Sidebar user panel (optional) -->
-            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="info">
-                    <a href="{{route('order')}}" class="d-block">Orders</a>
-                </div>
-            </div>
-            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="info">
-                    <a href="{{url('/admin')}}" class="d-block">All Products</a>
-                </div>
-            </div>
-            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                <div class="info">
-                    <a href="{{url('admin/createproductform')}}" class="d-block">Add New Product</a>
-                </div>
-            </div>
-
-
-            <!-- Sidebar Menu -->
-
-     
-            <!-- /.sidebar-menu -->
+    <aside class="wb-admin__sidebar" id="wb-admin-sidebar">
+        <div class="wb-admin__brand">
+            <a href="{{ url('/admin') }}" style="color:#fff;">Green<span>Electronics</span></a>
+            <button type="button" class="wb-offcanvas__close" data-close aria-label="Close menu" style="background:rgba(255,255,255,.1);color:#fff;">
+                <x-icon name="close" :size="16" />
+            </button>
         </div>
-        <!-- /.sidebar -->
+        <nav class="wb-admin__nav">
+            <div class="wb-admin__nav-group-title">Catalogue</div>
+            <a href="{{ url('/admin') }}" class="wb-admin__nav-link {{ request()->routeIs('adminDisplayProduct') ? 'is-active' : '' }}">
+                <x-icon name="grid" :size="17" /> All Products
+            </a>
+            <a href="{{ route('admincreateproductform') }}" class="wb-admin__nav-link {{ request()->routeIs('admincreateproductform') ? 'is-active' : '' }}">
+                <x-icon name="plus" :size="17" /> Add New Product
+            </a>
+            <div class="wb-admin__nav-group-title">Sales</div>
+            <a href="{{ route('order') }}" class="wb-admin__nav-link {{ request()->routeIs('order') ? 'is-active' : '' }}">
+                <x-icon name="box" :size="17" /> Orders
+            </a>
+        </nav>
+        <div class="wb-admin__sidebar-foot">
+            <a href="{{ url('/') }}"><x-icon name="chevron-left" :size="15" /> Back to Store</a>
+        </div>
     </aside>
 
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
+    <div class="wb-admin__main">
+        <header class="wb-admin__topbar">
+            <button type="button" class="wb-admin__toggle" data-open="admin-menu" aria-label="Open menu">
+                <x-icon name="menu" :size="20" />
+            </button>
+            <h1 class="wb-admin__topbar-title">@yield('page-title', 'Dashboard')</h1>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:.6rem;">
+                <span style="font-size:.85rem;color:var(--ink-soft);" class="d-none d-sm-inline">{{ Auth::user()->name ?? 'Admin' }}</span>
+                <div style="width:34px;height:34px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;">
+                    <x-icon name="user" :size="16" />
+                </div>
+            </div>
+        </header>
 
-                    </div><!-- /.col
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="#">Home</a></li>
-                            <li class="breadcrumb-item active">Starter Page</li>
-                        </ol>
-                    </div>/.col -->
-                </div><!-- /.row -->
-            </div><!-- /.container-fluid -->
+        <div class="wb-admin__content">
+            @section('content')
+            @show
         </div>
-        <!-- /.content-header -->
-
-        <!-- Main content -->
-
-
-
-        @section('content')
-
-
-        @show
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!-- /.content -->
     </div>
-
-    <!-- /.content-wrapper -->
-
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
-        <div class="p-3">
-            <h5>TitleTitle</h5>
-            <p>Sidebar content</p>
-        </div>
-    </aside>
-    <!-- /.control-sidebar -->
-
-    <!-- Main Footer -->
-    <footer class="main-footer" >
-        <!-- To the right -->
-        <div class="float-right d-none d-sm-inline">
-
-        </div>
-        <!-- Default to the left -->
-        <strong>Copyright &copy; 2014-2019 GreenElectronics.</strong> All rights reserved.
-    </footer>
 </div>
-<!-- ./wrapper -->
 
-<!-- REQUIRED SCRIPTS -->
-
-<!-- jQuery -->
-<script src="{{asset('jquery.min.js')}}"></script>
-<!-- Bootstrap 4 -->
-<script src="{{asset('bootstrap.bundle.min.js')}}"></script>
-<!-- AdminLTE App -->
-<script src="{{asset('adminlte.min.js')}}"></script>
+<script src="{{ asset('js/app.js') }}" defer></script>
 </body>
 </html>

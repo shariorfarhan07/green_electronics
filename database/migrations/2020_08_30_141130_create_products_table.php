@@ -15,25 +15,20 @@ class CreateProductsTable extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
-            $table->string('Name');
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->string('sku')->nullable()->unique();
+            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('subcategory', 100)->nullable();
+            $table->string('brand', 100)->nullable();
             $table->text('description')->nullable();
-            $table->string('image')->nullable();
-            $table->string('image1')->nullable();
-            $table->string('image2')->nullable();
-            $table->string('image3')->nullable();
-            $table->string('slug')->nullable();
-            $table->string('sdescription',300)->nullable();
-            $table->text('datasheet')->nullable();
-            $table->text('link')->nullable();
-            $table->bigInteger('sold');
-            $table->bigInteger('stock');
+            $table->string('short_description', 300)->nullable();
+            $table->text('specifications')->nullable();
+            $table->string('video_url')->nullable();
+            $table->unsignedInteger('stock')->default(0);
+            $table->unsignedInteger('sold')->default(0);
             $table->decimal('price', 10, 2);
-            $table->string('type1',100)->nullable();
-            $table->string('type2',100)->nullable();
-            $table->string('type3',100)->nullable();
-
-
+            $table->timestamps();
         });
     }
 

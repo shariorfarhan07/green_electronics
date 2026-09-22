@@ -1,61 +1,96 @@
-
-@extends('lay.Admin')
-
-
-
+@extends('lay.admin')
+@section('page-title', 'Edit Product')
 @section('content')
 
-<div class="container" >
-    <h4 class="m-0 text-dark">Edit Product Form</h4>
-    <form action="{{url('/admin/updateproduct/'.$product->id)}}" method="post">
-        {{csrf_field()}}
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" class="form-control" name="name" id="name" placeholder="product Name" value="{{$product->Name}}"required>
-        </div>
-        <div class="form-group">
-            <label for="description">description</label>
-            <textarea  class="form-control" name="description" id="description" placeholder="description" value="{{$product->description}}"required>{{$product->description}}</textarea>
-        </div>
-        <div class="form-group">
-            <label for="description">small description</label>
-            <textarea  class="form-control" name="sdescription" id="sdescription" placeholder="small description">{{$product->sdescription}}</textarea>
-        </div>
-        <div class="form-group">
-            <label for="description">Data sheet</label>
-            <textarea  class="form-control" name="datasheet" id="datasheet" placeholder="data description">{{$product->datasheet}}</textarea>
-        </div>
-        <div class="form-group">
-            <label for="price">price</label>
-            <input type="text" class="form-control" name="price" id="price" placeholder="price" value="{{$product->price}}"required>
-        </div>
-        <div class="form-group">
-            <label for="stock">stock</label>
-            <input type="text" class="form-control" name="stock" id="stock" placeholder="stock" value="{{$product->stock}}"required>
-        </div>
-        <div class="form-group">
-            <label for="type1">small category</label>
-            <input type="text" class="form-control" name="type1" id="type1" placeholder="type1" value="{{$product->type1}}">
-        </div>
-        <div class="form-group">
-            <label for="type2">Big category</label>
-            <input type="text" class="form-control" name="type2" id="type2" placeholder="type2" value="{{$product->type2}}">
-        </div>
-        <div class="form-group">
-            <label for="type3">Brand</label>
-            <input type="text" class="form-control" name="type3" id="type3" placeholder="type3" value="{{$product->type3}}">
-        </div>
-        <div class="form-group">
-            <label for="slug">slug</label>
-            <input type="text" class="form-control" name="slug" id="slug" placeholder="slug" value="{{$product->slug}}">
-        </div>
-        <button type="submit" name="submit" class="btn btn-default">submit</button>
-    </form>
-
-
-
-
+<div class="wb-admin__actions mb-3">
+    <a href="{{ route('manageProductImages', $product->id) }}" class="wb-btn wb-btn--ghost wb-btn--sm">
+        <x-icon name="image" :size="15" /> Manage Images ({{ $product->images()->count() }})
+    </a>
 </div>
 
+<div class="wb-admin__form">
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form action="{{url('/admin/updateproduct/'.$product->id)}}" method="post">
+        {{csrf_field()}}
+
+        <div class="form-group">
+            <label for="name">Product Name</label>
+            <input type="text" class="form-control" name="name" id="name" value="{{$product->name}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control" rows="4" name="description" id="description">{{$product->description}}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="short_description">Short Description</label>
+            <textarea class="form-control" rows="2" name="short_description" id="short_description">{{$product->short_description}}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="specifications">Specifications / Data Sheet Notes</label>
+            <textarea class="form-control" rows="3" name="specifications" id="specifications">{{$product->specifications}}</textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label for="price">Price (&#2547;)</label>
+                <input type="text" class="form-control" name="price" id="price" value="{{$product->price}}" required>
+            </div>
+            <div class="col-md-6 form-group">
+                <label for="stock">Stock Quantity</label>
+                <input type="text" class="form-control" name="stock" id="stock" value="{{$product->stock}}" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 form-group">
+                <label for="category_id">Category</label>
+                <select class="form-control" name="category_id" id="category_id" required>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" @selected($product->category_id === $cat->id)>{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4 form-group">
+                <label for="subcategory">Sub-category</label>
+                <input type="text" class="form-control" name="subcategory" id="subcategory" value="{{$product->subcategory}}">
+            </div>
+            <div class="col-md-4 form-group">
+                <label for="brand">Brand</label>
+                <input type="text" class="form-control" name="brand" id="brand" value="{{$product->brand}}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label for="sku">SKU</label>
+                <input type="text" class="form-control" name="sku" id="sku" value="{{$product->sku}}">
+            </div>
+            <div class="col-md-6 form-group">
+                <label for="slug">Slug</label>
+                <input type="text" class="form-control" name="slug" id="slug" value="{{$product->slug}}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="video_url">Product Video Link (optional)</label>
+            <input type="url" class="form-control" id="video_url" name="video_url" value="{{$product->video_url}}">
+        </div>
+
+        <button type="submit" name="submit" class="wb-btn wb-btn--accent">Save Changes</button>
+        <a href="{{ url('/admin') }}" class="wb-btn wb-btn--ghost">Cancel</a>
+    </form>
+</div>
 
 @endsection

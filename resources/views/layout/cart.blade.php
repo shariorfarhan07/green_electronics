@@ -1,122 +1,70 @@
-
-<div class="offsetmenu  ">
-    <div class="offsetmenu__inner">
-        <div class="offsetmenu__close__btn">
-            <a href="#">
-                <i class="zmdi zmdi-close"></i>
-            </a>
-        </div>
-        <div class="off__contact">
-            <div class="logo" style="padding-top: 30px">
-                <a href="{{route('homepage')}}">
-                   <h1 style="color: #0b0b0b; top: 50px;">ElectronicsBagBD</h1>
-                </a>
-            </div>
-            <p>Electronics Bag BD is the largest electronics component wholeseller in bangladesh
-                & Promises to provide you the best component for you project at lowest price in town</p>
-        </div>
-        <div class="sidebar__thumd">
-
-
-        </div>
-
-
-        <div class="offset__sosial__share">
-            <h4 class="offset__title">Follow Us On Social</h4>
-            <ul class="off__soaial__link">
-                <li>
-                    <a class="bg--twitter" href="/commingsoon" title="Twitter">
-                        <i class="zmdi zmdi-twitter"></i>
-                    </a>
-                </li>
-
-                <li>
-                    <a class="bg--instagram" href="/commingsoon" title="Instagram">
-                        <i class="zmdi zmdi-instagram"></i>
-                    </a>
-                </li>
-
-                <li>
-                    <a class="bg--facebook" href="/commingsoon" title="Facebook">
-                        <i class="zmdi zmdi-facebook"></i>
-                    </a>
-                </li>
-
-                <li>
-                    <a class="bg--google" href="/commingsoon" title="youtube">
-                        <i class="zmdi zmdi-youtube-play"></i>
-                    </a>
-                </li>
-
-
-            </ul>
+{{-- Mobile off-canvas menu --}}
+<div class="wb-offcanvas__backdrop" id="wb-menu-backdrop"></div>
+<div class="wb-offcanvas" id="wb-menu">
+    <div class="wb-offcanvas__head">
+        <span>Menu</span>
+        <button type="button" class="wb-offcanvas__close" data-close aria-label="Close menu"><x-icon name="close" /></button>
+    </div>
+    <div class="wb-offcanvas__body">
+        <nav>
+            <a href="{{ url('/') }}"><span>Home</span> <x-icon name="chevron-right" :size="16" /></a>
+            <a href="{{ route('searchproduct') }}"><span>Shop All</span> <x-icon name="chevron-right" :size="16" /></a>
+            <a href="{{ auth()->check() ? route('WishListProduct') : route('login') }}"><span>Wishlist</span> <x-icon name="chevron-right" :size="16" /></a>
+            <a href="{{ url('/about') }}"><span>About</span> <x-icon name="chevron-right" :size="16" /></a>
+            <a href="{{ url('/contact') }}"><span>Contact</span> <x-icon name="chevron-right" :size="16" /></a>
+        </nav>
+        <div style="margin-top:1rem;">
+            <h6 class="mono" style="text-transform:uppercase;font-size:.72rem;letter-spacing:.05em;color:var(--ink-faint);margin:1rem 0 .25rem;">Categories</h6>
+            @foreach($navCategories ?? [] as $cat)
+                <details class="wb-offcanvas__cat-group">
+                    <summary>
+                        <span style="display:flex;align-items:center;gap:.5rem;"><x-icon :name="$cat->icon" :size="17" /> {{ $cat->name }}</span>
+                        <x-icon name="chevron-down" :size="16" />
+                    </summary>
+                    <ul>
+                        <li><a href="{{ route('searchproduct', ['category' => $cat->slug]) }}">Browse all {{ $cat->name }}</a></li>
+                    </ul>
+                </details>
+            @endforeach
         </div>
     </div>
 </div>
-<!-- End Offset MEnu -->
 
-
-
-
-<!-- Start Cart Panel -->
-<div class="shopping__cart">
-    <div class="shopping__cart__inner">
-        <div class="offsetmenu__close__btn">
-            <a href="#">
-                <i class="zmdi zmdi-close"></i>
-            </a>
-        </div>
-
-
-        <div class="shp__cart__wrap">
-            @if ($cartforall!=null)
-
-            @foreach($cartforall-> items as $item)
-            <div class="shp__single__product">
-                <div class="shp__pro__thumb">
-                    <a href="#">
-                        <img src="{{Storage::disk('local')->url('product_images/'.$item['data']['image'])  }}" alt="product images">
-                    </a>
-                </div>
-                <div class="shp__pro__details">
-                    <h2>
-                        <a href="product-details.html"{{$item['data']['name']}}<</a>
-                    </h2>
-                    <span class="quantity">QTY:{{$item['quantity']}}</span>
-                    <span class="shp__price">৳{{$item['price']}}</span>
-                </div>
-                <div class="remove__btn">
-                    <a href="product/{{$item['data']['id']}}/0" title="Remove this item">
-                        <i class="zmdi zmdi-close"></i>
-                    </a>
-                </div>
+{{-- Mini cart drawer --}}
+<div class="wb-offcanvas__backdrop" id="wb-cart-backdrop"></div>
+<div class="wb-offcanvas wb-offcanvas--right" id="wb-cart-drawer">
+    <div class="wb-offcanvas__head">
+        <span>Your Cart @if($cartforall && $cartforall->totalQuantity)({{ $cartforall->totalQuantity }})@endif</span>
+        <button type="button" class="wb-offcanvas__close" data-close aria-label="Close cart"><x-icon name="close" /></button>
+    </div>
+    <div class="wb-offcanvas__body" style="display:flex;flex-direction:column;">
+        @if($cartforall && count($cartforall->items) > 0)
+            <div style="flex:1;overflow-y:auto;">
+                @foreach($cartforall->items as $item)
+                    <div class="wb-cart-drawer__item">
+                        <div class="wb-cart-drawer__thumb">
+                            <img src="{{ Storage::disk('local')->url('product_images/'.$item['data']->primary_image) }}" alt="{{ $item['data']->name }}">
+                        </div>
+                        <div class="wb-cart-drawer__info">
+                            <h6>{{ $item['data']->name }}</h6>
+                            <span class="mono" style="font-size:.78rem;color:var(--ink-soft);">Qty: {{ $item['quantity'] }}</span>
+                            <div class="wb-cart-drawer__price">&#2547;{{ $item['price'] }}</div>
+                        </div>
+                        <a href="{{ route('adjustCart', ['id' => $item['data']->id, 'number' => 0]) }}" class="wb-cart-drawer__remove" aria-label="Remove"><x-icon name="close" :size="16" /></a>
+                    </div>
+                @endforeach
             </div>
-            @endforeach
-
-
-
-
-
-
-        </div>
-        <ul class="shoping__total">
-            <li class="subtotal">total:</li>
-            <li class="total__price">{{$cartforall->totalPrice}}</li>
-        </ul>
-        <ul class="shopping__btn">
-            <li>
-                <a href="\cart">View Cart</a>
-            </li>
-            <li class="shp__checkout">
-                <a href="{{route('billingdetails')}}">Checkout</a>
-            </li>
-        </ul>
+            <div class="wb-cart-drawer__foot">
+                <div class="wb-cart-drawer__total"><span>Subtotal</span><span>&#2547;{{ $cartforall->totalPrice }}</span></div>
+                <a href="{{ route('cartproduct') }}" class="wb-btn wb-btn--ghost wb-btn--block mb-2">View Cart</a>
+                <a href="{{ route('billingdetails') }}" class="wb-btn wb-btn--accent wb-btn--block">Checkout</a>
+            </div>
         @else
-        There is nothin in the cart!!
+            <div class="wb-empty-state" style="padding:3rem 1rem;">
+                <x-icon name="cart" :size="40" />
+                <p>Your cart is empty.</p>
+                <a href="{{ route('searchproduct') }}" class="wb-btn wb-btn--accent">Start Shopping</a>
+            </div>
         @endif
     </div>
-</div>
-<!-- End Cart Panel -->
-
-<!-- End Offset Wrapper -->
 </div>

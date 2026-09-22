@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Product;
+use App\Category;
 use App\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,18 +14,27 @@ class ProductsController extends Controller
 {
     //
   public function index(){
-      $products = Product::all();
-      $products1 = Product::orderBy('id', 'desc')->where('type2', 'DEVELOPMENT BOARDS')->take(7)->get();
-      $products2= Product::orderBy('id', 'desc')->where('type2', 'RC & DRONE')->take(7)->get();
-      $products3 = Product::orderBy('id', 'desc')->where('type2', 'CNC & 3D PRINTERS')->take(7)->get();
-      $products4 = Product::orderBy('id', 'desc')->take(12)->get();
-      $products5 = Product::orderBy('sold', 'desc')->take(12)->get();
+      $byCategory = function ($slug) {
+          return Product::with(['images', 'category'])->whereHas('category', function ($q) use ($slug) {
+              $q->where('slug', $slug);
+          })->orderBy('id', 'desc')->take(7)->get();
+      };
+
+      $products1 = $byCategory('development-boards');
+      $products2 = $byCategory('robotics-rc');
+      $products3 = $byCategory('cnc-3d-printers');
+      $products4 = Product::with(['images', 'category'])->orderBy('id', 'desc')->take(12)->get();
+      $products5 = Product::with(['images', 'category'])->orderBy('sold', 'desc')->take(12)->get();
 
       return view("index")->with('products1',$products1)->with('products2',$products2)->with('products3',$products3)->with('products4',$products4)->with('products5',$products5);
   }
 
 public function showpaymentpage(){
- return view('orderForm');
+    $cart=Session::get('cart');
+    if(!$cart || count($cart->items) === 0){
+        return redirect()->route('homepage');
+    }
+    return view('orderForm');
 }
 
 
@@ -67,7 +77,7 @@ public function showpaymentpage(){
           $order_id=DB::getPdo()->lastInsertId();
           foreach ($cart->items as $cart_item){
               $item_id=$cart_item['data']['id'];
-              $item_name=$cart_item['data']['Name'];
+              $item_name=$cart_item['data']['name'];
               $item_price=$cart_item['data']['price'];
               $qty=$cart_item['quantity'];
               $newOrderItem=array('order_id'=>$order_id,'item_id'=>$item_id,'item_name'=>$item_name,'item_price'=>$item_price,'qty'=>$qty);
@@ -85,17 +95,31 @@ public function showpaymentpage(){
 
 
   public function search(Request $request){
-   $searchText=$request->get('searchText');
-      $products=Product::where('Name','Like',"%".$searchText."%")->
-      orWhere('type1', 'LIKE', '%' . $searchText . '%')->
-      orWhere('type2', 'LIKE', '%' . $searchText . '%')->
-      orWhere('type3', 'LIKE', '%' . $searchText . '%')->paginate(3);
-      return view("shop",compact("products"));
+      $searchText = $request->get('searchText');
+      $categorySlug = $request->get('category');
+
+      $query = Product::with(['images', 'category'])->orderBy('id', 'desc');
+
+      if ($categorySlug) {
+          $query->whereHas('category', function ($q) use ($categorySlug) {
+              $q->where('slug', $categorySlug);
+          });
+      } elseif ($searchText) {
+          $query->where(function ($q) use ($searchText) {
+              $q->where('name', 'LIKE', '%'.$searchText.'%')
+                ->orWhere('subcategory', 'LIKE', '%'.$searchText.'%')
+                ->orWhere('brand', 'LIKE', '%'.$searchText.'%');
+          });
+      }
+
+      $products = $query->paginate(12);
+      $activeCategory = $categorySlug ? Category::where('slug', $categorySlug)->first() : null;
+
+      return view("shop", compact("products", "activeCategory"));
   }
 
   public function productView(Request $request,$id){
-      $product = Product::find($id);
-     // dump($product);
+      $product = Product::with(['images', 'category'])->findOrFail($id);
       return view("product",compact("product"));
 
 
@@ -122,12 +146,8 @@ public function showpaymentpage(){
       $userId = Auth::id();
       $exist=DB::table('wishlist')->where('user_id', $userId)->exists();
       if($exist){
-          $products=DB::table('wishlist')->where('user_id', $userId)->get();
-          $data=[];
-          foreach ($products as $product){
-              array_push($data,$product->product_id);
-          }
-          $products=DB::table('products')->where('id', $data)->get();
+          $productIds = DB::table('wishlist')->where('user_id', $userId)->pluck('product_id');
+          $products = Product::with('images')->whereIn('id', $productIds)->get();
 
           return view('wishlist')->with('products',$products);
       }
