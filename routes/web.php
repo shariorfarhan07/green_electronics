@@ -50,6 +50,8 @@ Route::get('login/{platform}/callback', [LoginController::class, 'handleProvider
 Auth::routes();
 
 Route::get('account', 'HomeController@index')->name('account')->middleware('auth');
+Route::get('account/orders', ['uses' => 'AccountController@index', 'as' => 'account.orders.index']);
+Route::get('account/orders/{id}', ['uses' => 'AccountController@show', 'as' => 'account.orders.show']);
 
 //admin panel — all routes below require an authenticated admin (see app/Http/Middleware/RestrictAccess.php)
 Route::prefix('admin')->middleware('restictToAdmin')->group(function () {

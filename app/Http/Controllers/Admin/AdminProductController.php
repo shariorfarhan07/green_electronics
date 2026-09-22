@@ -56,12 +56,25 @@ class AdminProductController extends Controller
         $image = ProductImage::findOrFail($imageId);
         $productId = $image->product_id;
 
-        if (Storage::disk('public')->exists('product_images/'.$image->path)) {
-            Storage::disk('public')->delete('product_images/'.$image->path);
-        }
         $image->delete();
+        $this->deleteFileIfUnused($image->path);
 
         return redirect()->route('admin.products.edit', $productId)->withsuccess('Image removed.');
+    }
+
+    /**
+     * Seeded products share a placeholder file, so the file is only removed once no
+     * other row still points at it — otherwise deleting one product's image would
+     * blank out every product sharing that path.
+     */
+    private function deleteFileIfUnused($path){
+        if (ProductImage::where('path', $path)->exists()) {
+            return;
+        }
+
+        if (Storage::disk('public')->exists('product_images/'.$path)) {
+            Storage::disk('public')->delete('product_images/'.$path);
+        }
     }
 
    public function create(){
@@ -70,14 +83,13 @@ class AdminProductController extends Controller
    }
    public function destroy($id){
         $product = Product::with('images')->findOrFail($id);
-
-        foreach ($product->images as $image) {
-            if (Storage::disk('public')->exists('product_images/'.$image->path)) {
-                Storage::disk('public')->delete('product_images/'.$image->path);
-            }
-        }
+        $paths = $product->images->pluck('path');
 
         $product->delete();
+
+        foreach ($paths as $path) {
+            $this->deleteFileIfUnused($path);
+        }
         return redirect()->route('admin.products.index')->withsuccess('Product deleted.');
     }
 

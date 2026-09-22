@@ -7,6 +7,9 @@
         <x-icon name="chevron-left" :size="15" /> Back to Invoice #{{ $order->id }}
     </a>
     <a href="{{ route('admin.orders.index') }}" class="wb-btn wb-btn--ghost wb-btn--sm">All Orders</a>
+    <a href="tel:{{ preg_replace('/[^0-9+]/', '', $order->phone) }}" class="wb-btn wb-btn--accent wb-btn--sm">
+        <x-icon name="phone" :size="14" /> Call Customer &middot; {{ $order->phone }}
+    </a>
 </div>
 
 @if (session('success'))
@@ -51,7 +54,18 @@
                         <tbody>
                         @foreach($items as $item)
                             <tr>
-                                <td style="font-weight:600;">{{ $item->item_name }}</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:.7rem;">
+                                        <span class="wb-order-thumb" style="width:44px;height:44px;">
+                                            @if($images[$item->item_id] ?? null)
+                                                <img src="{{ Storage::disk('local')->url('product_images/'.$images[$item->item_id]) }}" alt="{{ $item->item_name }}">
+                                            @else
+                                                <x-icon name="image" :size="16" />
+                                            @endif
+                                        </span>
+                                        <span style="font-weight:600;">{{ $item->item_name }}</span>
+                                    </div>
+                                </td>
                                 <td class="mono">&#2547;{{ number_format($item->item_price, 2) }}</td>
                                 <td>{{ $item->qty }}</td>
                                 <td class="mono">&#2547;{{ number_format($item->qty * $item->item_price, 2) }}</td>

@@ -26,4 +26,23 @@ class Product extends Model
     {
         return $this->images->first()->path ?? null;
     }
+
+    /**
+     * Map order-item product ids to their first image path, in one query, for order
+     * and invoice screens. Items whose product was since deleted are simply absent,
+     * so callers fall back to a placeholder.
+     */
+    public static function imagesForOrderItems($items)
+    {
+        $ids = collect($items)->pluck('item_id')->filter()->unique();
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return static::with('images')->whereIn('id', $ids)->get()
+            ->mapWithKeys(function ($product) {
+                return [$product->id => $product->primary_image];
+            });
+    }
 }

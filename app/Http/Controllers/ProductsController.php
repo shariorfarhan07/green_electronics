@@ -82,7 +82,7 @@ public function checkoutIndex(){
           //dump($cart);
           $date=date('Y-m-d H:i:s');
           $codAmount = $paymentmethod === 'cod' ? ($cart->totalPrice + $shipping) : null;
-          $newOrderArray=array('shipping'=>$shipping,'zip'=>$zip,'date'=>$date,'txid'=>$txid,'bkashnumber'=>$paymentnumber,'payment_method'=>$paymentmethod,'cod_amount'=>$codAmount,'status'=>'our representative will call you','payment'=>$cart->totalPrice,'name'=>$name,'email'=>$email,'phone'=>$phone,'address'=>$address,'division'=>$division,'city'=>$city);
+          $newOrderArray=array('user_id'=>Auth::id(),'shipping'=>$shipping,'zip'=>$zip,'date'=>$date,'txid'=>$txid,'bkashnumber'=>$paymentnumber,'payment_method'=>$paymentmethod,'cod_amount'=>$codAmount,'status'=>'processing','payment'=>$cart->totalPrice,'name'=>$name,'email'=>$email,'phone'=>$phone,'address'=>$address,'division'=>$division,'city'=>$city);
           $created_order=DB::table('orders')->insert($newOrderArray);
           $order_id=DB::getPdo()->lastInsertId();
           foreach ($cart->items as $cart_item){
@@ -93,8 +93,15 @@ public function checkoutIndex(){
               $newOrderItem=array('order_id'=>$order_id,'item_id'=>$item_id,'item_name'=>$item_name,'item_price'=>$item_price,'qty'=>$qty);
               $created_order_items=DB::table('orders_items')->insert($newOrderItem);
                   }
+          // Only the cart is cleared: Session::flush() here used to wipe the whole
+          // session, logging the customer out the moment they placed an order.
           Session::forget('cart');
-          Session::flush();
+
+          if (Auth::check()) {
+              return redirect()->route('account.orders.show', $order_id)
+                  ->withsuccess('Thanks for your order! You can track its status here.');
+          }
+
           return redirect()->route("homepage")->withsuccess('Thanks For Choosing us');
 
       }else{

@@ -44,6 +44,12 @@
         </nav>
         <div class="wb-admin__sidebar-foot">
             <a href="{{ url('/') }}"><x-icon name="chevron-left" :size="15" /> Back to Store</a>
+            <form action="{{ route('logout') }}" method="post" style="margin-top:.5rem;">
+                @csrf
+                <button type="submit" style="border:none;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;display:flex;align-items:center;gap:.5rem;">
+                    <x-icon name="reply" :size="15" /> Log out
+                </button>
+            </form>
         </div>
     </aside>
 

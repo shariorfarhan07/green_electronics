@@ -35,6 +35,15 @@
                 <x-icon name="user" />
                 <span class="wb-header__action-label">{{ auth()->check() ? auth()->user()->name : 'Account' }}</span>
             </a>
+            @auth
+                <form action="{{ route('logout') }}" method="post" style="display:inline;">
+                    @csrf
+                    <button type="submit" class="wb-header__action" style="border:none;background:none;" title="Log out">
+                        <x-icon name="reply" />
+                        <span class="wb-header__action-label">Logout</span>
+                    </button>
+                </form>
+            @endauth
             <button type="button" class="wb-header__action" data-open="cart" style="border:none;background:none;">
                 <x-icon name="cart" />
                 @if($cartforall && $cartforall->totalQuantity > 0)

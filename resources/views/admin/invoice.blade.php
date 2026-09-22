@@ -79,6 +79,14 @@
         table.invoice-items tbody td { padding: 12px; font-size: .88rem; border-bottom: 1px solid var(--line); }
         table.invoice-items tbody tr:last-child td { border-bottom: none; }
 
+        .invoice-item { display: flex; align-items: center; gap: .6rem; }
+        .invoice-thumb {
+            width: 38px; height: 38px; flex-shrink: 0; border-radius: 7px;
+            border: 1px solid var(--line); background: var(--paper-alt); overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .invoice-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+
         .invoice-totals { margin-left: auto; width: 280px; }
         .invoice-totals .row { display: flex; justify-content: space-between; padding: 7px 0; font-size: .88rem; color: var(--ink-soft); }
         .invoice-totals .row.grand { border-top: 2px solid var(--ink); margin-top: 6px; padding-top: 12px; font-size: 1.1rem; font-weight: 800; color: var(--ink); }
@@ -98,6 +106,7 @@
 <div class="invoice-toolbar">
     <a href="{{ route('admin.orders.index') }}">&larr; Back to Orders</a>
     <div class="invoice-toolbar-actions">
+        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $customer->phone) }}">&#9742; Call Customer &middot; {{ $customer->phone }}</a>
         <a href="{{ route('admin.orders.edit', $customer->id) }}">Edit Order</a>
         <button type="button" class="btn-accent" onclick="window.print()">Print Invoice</button>
     </div>
@@ -163,7 +172,16 @@
         @foreach($products as $index => $product)
             <tr>
                 <td class="muted">{{ $index + 1 }}</td>
-                <td style="font-weight:600;">{{ $product['item_name'] }}</td>
+                <td>
+                    <div class="invoice-item">
+                        <span class="invoice-thumb">
+                            @if($images[$product['item_id']] ?? null)
+                                <img src="{{ Storage::disk('local')->url('product_images/'.$images[$product['item_id']]) }}" alt="{{ $product['item_name'] }}">
+                            @endif
+                        </span>
+                        <span style="font-weight:600;">{{ $product['item_name'] }}</span>
+                    </div>
+                </td>
                 <td>{{ $product['qty'] }}</td>
                 <td>&#2547;{{ number_format($product['item_price'], 2) }}</td>
                 <td>&#2547;{{ number_format($product['qty'] * $product['item_price'], 2) }}</td>

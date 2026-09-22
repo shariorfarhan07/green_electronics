@@ -413,6 +413,59 @@ a:hover { color: var(--accent-dark); }
 .wb-summary__title { font-weight: 700; font-size: 1.02rem; padding-bottom: .9rem; margin-bottom: .9rem; border-bottom: 1px solid var(--line); }
 .wb-summary__row { display: flex; justify-content: space-between; padding: .6rem 0; font-size: .9rem; color: var(--ink-soft); }
 .wb-summary__row--total { font-weight: 700; font-size: 1.15rem; color: var(--ink); border-top: 1px solid var(--line); padding-top: 1rem; margin-top: .3rem; }
+// ---- Order status + order history --------------------------------------
+.wb-status {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .75rem;
+  border-radius: var(--radius-full); font-size: .76rem; font-weight: 700;
+  text-transform: capitalize; background: var(--paper-alt); color: var(--ink-soft);
+  &--processing { background: #fff5e5; color: #9a6400; }
+  &--shipped    { background: #e6f0ff; color: #1b4f9c; }
+  &--delivered  { background: var(--accent-soft); color: var(--accent-dark); }
+  &--cancelled  { background: #fdeceb; color: var(--danger); }
+}
+
+.wb-timeline { display: flex; align-items: flex-start; margin: .5rem 0 1.25rem; }
+.wb-timeline__step { flex: 1; text-align: center; position: relative; }
+.wb-timeline__step + .wb-timeline__step::before {
+  content: ''; position: absolute; top: 15px; right: 50%; left: -50%; height: 2px; background: var(--line);
+}
+.wb-timeline__step.is-done + .wb-timeline__step.is-done::before,
+.wb-timeline__step.is-current::before { background: var(--accent); }
+.wb-timeline__dot {
+  position: relative; z-index: 1; width: 32px; height: 32px; margin: 0 auto .45rem;
+  border-radius: 50%; border: 2px solid var(--line); background: #fff; color: var(--ink-faint);
+  display: flex; align-items: center; justify-content: center;
+}
+.wb-timeline__step.is-done .wb-timeline__dot,
+.wb-timeline__step.is-current .wb-timeline__dot { border-color: var(--accent); background: var(--accent); color: #fff; }
+.wb-timeline__label { font-size: .8rem; font-weight: 600; color: var(--ink-faint); text-transform: capitalize; }
+.wb-timeline__step.is-done .wb-timeline__label,
+.wb-timeline__step.is-current .wb-timeline__label { color: var(--ink); }
+
+.wb-order-card {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: 1.1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: #fff; margin-bottom: .9rem;
+  &:hover { border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+}
+.wb-order-card__id { font-weight: 700; font-size: .95rem; }
+.wb-order-card__meta { font-size: .8rem; color: var(--ink-faint); }
+.wb-order-card__right { margin-left: auto; display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+
+.wb-order-item { display: flex; align-items: center; gap: .9rem; padding: .75rem 0; border-bottom: 1px solid var(--line); }
+.wb-order-item:last-child { border-bottom: none; }
+.wb-order-thumb {
+  width: 52px; height: 52px; flex-shrink: 0; border-radius: var(--radius-sm);
+  border: 1px solid var(--line); background: var(--paper-alt); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; color: var(--ink-faint);
+  img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
+}
+
+@media (max-width: 575px) {
+  .wb-timeline__label { font-size: .72rem; }
+  .wb-order-card__right { margin-left: 0; width: 100%; }
+}
+
 .wb-checkout-items { display: flex; flex-direction: column; gap: .85rem; max-height: 320px; overflow-y: auto; }
 .wb-checkout-items__row { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: .75rem; }
 .wb-checkout-items__thumb { position: relative; width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--paper-alt); border: 1px solid var(--line); }
@@ -542,12 +595,15 @@ a:hover { color: var(--accent-dark); }
 
 // ---- Admin forms: grouped fieldsets -------------------------------------
 .wb-admin__form-wrap { max-width: 900px; }
+// No overflow:hidden here — it clipped the searchable dropdown's panel. The head
+// rounds its own top corners instead.
 .wb-admin__fieldset {
   background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
-  margin-bottom: 1.15rem; overflow: hidden;
+  margin-bottom: 1.15rem;
 }
 .wb-admin__fieldset-head {
   display: flex; align-items: flex-start; gap: .8rem;
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
   padding: 1.05rem 1.4rem; border-bottom: 1px solid var(--line); background: var(--paper-alt);
   h4 { margin: 0; font-size: .97rem; font-weight: 700; }
   p { margin: .15rem 0 0; font-size: .8rem; color: var(--ink-soft); }
@@ -572,17 +628,33 @@ a:hover { color: var(--accent-dark); }
 .wb-admin__fieldset-body .form-control,
 .wb-admin__cat-head .form-control,
 .wb-admin__cat-child .form-control { width: 100%; font-size: .88rem; }
+// Bootstrap pins .form-control to a fixed height that is shorter than our padding
+// needs, which vertically clipped the text inside selects. Let height follow content.
+.wb-admin__fieldset-body .form-control,
+.wb-admin__cat-head .form-control,
+.wb-admin__cat-child .form-control,
+select.form-control,
+textarea.form-control { height: auto; }
+.wb-admin__fieldset-body .form-control { min-height: 44px; line-height: 1.45; }
+.wb-admin__fieldset-body textarea.form-control { min-height: 0; }
+
 select.form-control {
-  appearance: none; -webkit-appearance: none; padding-right: 2.2rem;
+  appearance: none; -webkit-appearance: none; padding-right: 2.4rem;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b5e66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right .7rem center;
+  background-repeat: no-repeat; background-position: right .8rem center;
+  cursor: pointer; text-overflow: ellipsis;
+  &:hover { border-color: var(--line-strong); }
 }
+// Native dropdown lists inherit almost nothing, but sizing the options keeps the
+// open list legible instead of cramped default-styled rows.
+select.form-control option { padding: .5rem .6rem; font-size: .9rem; color: var(--ink); background: #fff; }
+select.form-control optgroup { font-weight: 700; color: var(--ink-faint); font-size: .8rem; }
 
 // ---- Searchable select (progressive enhancement over a native <select>) ---
 .wb-select { position: relative; }
 .wb-select__toggle {
   width: 100%; text-align: left; background: #fff; cursor: pointer;
-  display: flex; align-items: center; gap: .5rem;
+  display: flex; align-items: center; gap: .5rem; min-height: 44px; line-height: 1.45;
   border: 1.5px solid var(--line); border-radius: var(--radius-sm); padding: .65rem .9rem;
   font-family: var(--font-sans); font-size: .88rem; color: var(--ink);
   &:hover { border-color: var(--line-strong); }
@@ -627,6 +699,14 @@ select.form-control {
 .wb-admin__image-tile img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
 .wb-admin__image-tile .wb-admin__image-remove { position: absolute; top: 6px; right: 6px; }
 .wb-admin__image-tile .wb-admin__image-primary { position: absolute; top: 6px; left: 6px; }
+// Keeps a long free-text cell (order addresses) from ballooning row height and
+// pushing the row's actions far off-screen on narrow viewports.
+.wb-admin__cell-clamp {
+  max-width: 260px; min-width: 150px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden; text-overflow: ellipsis;
+}
+
 // Admin category taxonomy editor
 .wb-admin__cat-section { border-bottom: 1px solid var(--line); padding: .9rem 1.25rem; }
 .wb-admin__cat-section:last-child { border-bottom: none; }

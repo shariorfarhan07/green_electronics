@@ -12,10 +12,13 @@
                 </p>
                 @if($userdata->isAdmin())
                     <a href="{{ route('admin.products.index') }}" class="wb-btn wb-btn--primary">Go to Admin Panel</a>
-                @else
-                    <a href="{{ route('homepage') }}" class="wb-btn wb-btn--accent">Continue Shopping</a>
-                    <a href="{{ route('wishlist.index') }}" class="wb-btn wb-btn--ghost">My Wishlist</a>
                 @endif
+                <a href="{{ route('account.orders.index') }}" class="wb-btn wb-btn--accent">My Orders</a>
+                <a href="{{ route('wishlist.index') }}" class="wb-btn wb-btn--ghost">My Wishlist</a>
+                <form action="{{ route('logout') }}" method="post" style="display:inline;">
+                    @csrf
+                    <button type="submit" class="wb-btn wb-btn--ghost">Log out</button>
+                </form>
             </div>
         </div>
 

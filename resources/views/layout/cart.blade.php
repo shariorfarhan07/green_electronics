@@ -12,6 +12,17 @@
             <a href="{{ auth()->check() ? route('wishlist.index') : route('login') }}"><span>Wishlist</span> <x-icon name="chevron-right" :size="16" /></a>
             <a href="{{ url('/about') }}"><span>About</span> <x-icon name="chevron-right" :size="16" /></a>
             <a href="{{ url('/contact') }}"><span>Contact</span> <x-icon name="chevron-right" :size="16" /></a>
+            @auth
+                <a href="{{ route('account.orders.index') }}"><span>My Orders</span> <x-icon name="chevron-right" :size="16" /></a>
+                <form action="{{ route('logout') }}" method="post">
+                    @csrf
+                    <button type="submit" style="border:none;background:none;width:100%;text-align:left;padding:0;font:inherit;color:inherit;display:flex;align-items:center;justify-content:space-between;">
+                        <span>Logout</span> <x-icon name="reply" :size="16" />
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('login') }}"><span>Login / Register</span> <x-icon name="chevron-right" :size="16" /></a>
+            @endauth
         </nav>
         <div style="margin-top:1rem;">
             <h6 class="mono" style="text-transform:uppercase;font-size:.72rem;letter-spacing:.05em;color:var(--ink-faint);margin:1rem 0 .25rem;">Categories</h6>

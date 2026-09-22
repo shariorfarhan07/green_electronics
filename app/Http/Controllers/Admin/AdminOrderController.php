@@ -28,7 +28,11 @@ class AdminOrderController extends Controller
         $products = Orders_Items::where('order_id', $id)->get();
         $customer = Order::findOrFail($id);
 
-        return view("admin.invoice",['products'=>$products ,'customer'=>$customer]);
+        return view("admin.invoice",[
+            'products' => $products,
+            'customer' => $customer,
+            'images' => Product::imagesForOrderItems($products),
+        ]);
     }
 
     public function edit($id){
@@ -38,6 +42,7 @@ class AdminOrderController extends Controller
         return view('admin.editOrderForm', [
             'order' => $order,
             'items' => $items,
+            'images' => Product::imagesForOrderItems($items),
             'products' => $products,
             'statuses' => self::STATUSES,
         ]);

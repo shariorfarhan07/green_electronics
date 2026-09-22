@@ -24,11 +24,18 @@
             <tr>
                 <td class="mono">#{{$product['id']}}</td>
                 <td style="font-weight:600;">{{$product['name']}}</td>
-                <td>{{$product['address']}}</td>
-                <td class="mono">{{$product['phone']}}</td>
+                <td><div class="wb-admin__cell-clamp" title="{{ $product['address'] }}">{{ $product['address'] }}</div></td>
+                <td>
+                    <a href="tel:{{ preg_replace('/[^0-9+]/', '', $product['phone']) }}" class="wb-btn wb-btn--sm wb-btn--ghost" title="Call {{ $product['name'] }}">
+                        <x-icon name="phone" :size="13" /> {{ $product['phone'] }}
+                    </a>
+                </td>
                 <td>{{$product['date']}}</td>
-                <td>{{$product['bkashnumber']}}<br><span style="font-size:.78rem;color:var(--ink-faint);">{{$product['txid']}}</span></td>
-                <td><span class="wb-admin__badge">{{ $product['status'] }}</span></td>
+                <td>
+                    <div style="font-weight:600;">{{ $product->payment_method === 'bkash' ? 'bKash' : 'Cash on Delivery' }}</div>
+                    <div style="font-size:.78rem;color:var(--ink-faint);">&#2547;{{ number_format($product->grand_total, 2) }}</div>
+                </td>
+                <td><span class="wb-status wb-status--{{ \Illuminate\Support\Str::slug($product->status) }}">{{ $product->status }}</span></td>
                 <td>
                     <div class="wb-admin__actions">
                         <a href="{{ route('admin.orders.show', $product['id']) }}" class="wb-admin__icon-btn" title="View Invoice"><x-icon name="box" :size="14" /></a>
