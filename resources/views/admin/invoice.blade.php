@@ -134,10 +134,10 @@
         <div class="invoice-meta-block">
             <h4>Payment</h4>
             <p>
-                @if($customer->txid=='cash on delevery' || $customer->txid=='cash on delivery')
-                    Cash on Delivery
-                @else
+                @if($customer->payment_method === 'bkash')
                     Paid via bKash
+                @else
+                    Cash on Delivery
                 @endif
             </p>
             @if($customer->bkashnumber && $customer->bkashnumber != 'cash on delevery')
@@ -179,6 +179,12 @@
             <div class="row"><span>Discount</span><span>&minus;&#2547;{{ number_format($customer->discount, 2) }}</span></div>
         @endif
         <div class="row grand"><span>Grand Total</span><span>&#2547;{{ number_format($customer->payment + $customer->shipping - ($customer->discount ?: 0), 2) }}</span></div>
+        @if($customer->paid)
+            <div class="row"><span>Already Paid</span><span>&minus;&#2547;{{ number_format($customer->paid, 2) }}</span></div>
+        @endif
+        @if($customer->payment_method === 'cod' && $customer->cod_amount)
+            <div class="row" style="font-weight:700;color:var(--ink);"><span>Collect on Delivery</span><span>&#2547;{{ number_format($customer->cod_amount, 2) }}</span></div>
+        @endif
     </div>
 
     <div class="invoice-footnote">
