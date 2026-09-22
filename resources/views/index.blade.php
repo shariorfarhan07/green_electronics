@@ -8,13 +8,13 @@
             <span class="wb-hero__eyebrow">Bangladesh's Electronics Component Store</span>
             <h1 class="wb-hero__title">Everything you need to <span>build</span>, from Arduino to CNC.</h1>
             <p class="wb-hero__sub">Genuine development boards, sensors, robotics parts and 3D printing supplies &mdash; shipped nationwide with cash on delivery.</p>
-            <a href="{{ route('searchproduct') }}" class="wb-btn wb-btn--accent">Shop All Products <x-icon name="chevron-right" :size="16" /></a>
+            <a href="{{ route('shop') }}" class="wb-btn wb-btn--accent">Shop All Products <x-icon name="chevron-right" :size="16" /></a>
         </div>
     </div>
 
     <div class="wb-cat-strip">
         @foreach($navCategories ?? [] as $cat)
-            <a href="{{ route('searchproduct', ['category' => $cat->slug]) }}" class="wb-cat-chip">
+            <a href="{{ route('shop', ['category' => $cat->slug]) }}" class="wb-cat-chip">
                 <x-icon :name="$cat->icon" :size="26" />
                 <span>{{ $cat->name }}</span>
             </a>
@@ -36,7 +36,7 @@
     <div class="container">
         <div class="wb-section__head">
             <h2 class="wb-section__title">{{ $rail['title'] }}</h2>
-            <a href="{{ route('searchproduct', ['category' => $rail['slug']]) }}" class="wb-section__link">View All <x-icon name="chevron-right" :size="14" /></a>
+            <a href="{{ route('shop', ['category' => $rail['slug']]) }}" class="wb-section__link">View All <x-icon name="chevron-right" :size="14" /></a>
         </div>
         <div class="wb-grid--5">
             @foreach($rail['items'] as $product)

@@ -21,17 +21,17 @@
 
         <a href="{{ url('/') }}" class="wb-logo">Green<span>Electronics</span></a>
 
-        <form class="wb-header__search" action="{{ route('searchproduct') }}" method="get">
+        <form class="wb-header__search" action="{{ route('shop') }}" method="get">
             <input type="text" name="searchText" placeholder="Search for Arduino, sensors, modules&hellip;" autocomplete="off">
             <button type="submit" aria-label="Search"><x-icon name="search" /></button>
         </form>
 
         <div class="wb-header__actions">
-            <a href="{{ auth()->check() ? route('WishListProduct') : route('login') }}" class="wb-header__action">
+            <a href="{{ auth()->check() ? route('wishlist.index') : route('login') }}" class="wb-header__action">
                 <x-icon name="heart" />
                 <span class="wb-header__action-label">Wishlist</span>
             </a>
-            <a href="{{ auth()->check() ? route('home') : route('login') }}" class="wb-header__action">
+            <a href="{{ auth()->check() ? route('account') : route('login') }}" class="wb-header__action">
                 <x-icon name="user" />
                 <span class="wb-header__action-label">{{ auth()->check() ? auth()->user()->name : 'Account' }}</span>
             </a>
@@ -48,12 +48,12 @@
     <nav class="wb-nav">
         <ul class="wb-nav__list">
             <li class="wb-mega">
-                <a href="{{ route('searchproduct') }}" class="wb-nav__link wb-nav__categories-btn">
+                <a href="{{ route('shop') }}" class="wb-nav__link wb-nav__categories-btn">
                     <x-icon name="grid" :size="17" /> All Categories
                 </a>
                 <div class="wb-mega__panel">
                     @foreach($navCategories ?? [] as $cat)
-                        <a href="{{ route('searchproduct', ['category' => $cat->slug]) }}" class="wb-mega__item">
+                        <a href="{{ route('shop', ['category' => $cat->slug]) }}" class="wb-mega__item">
                             <x-icon :name="$cat->icon" />
                             <span>{{ $cat->name }}<small>{{ $cat->blurb }}</small></span>
                         </a>
@@ -61,7 +61,7 @@
                 </div>
             </li>
             <li><a href="{{ url('/') }}" class="wb-nav__link">Home</a></li>
-            <li><a href="{{ route('searchproduct') }}" class="wb-nav__link">Shop</a></li>
+            <li><a href="{{ route('shop') }}" class="wb-nav__link">Shop</a></li>
             <li><a href="{{ url('/about') }}" class="wb-nav__link">About</a></li>
             <li><a href="{{ url('/contact') }}" class="wb-nav__link">Contact</a></li>
         </ul>
@@ -90,7 +90,7 @@
                 <h4>Categories</h4>
                 <ul>
                     @foreach(($navCategories ?? collect())->take(6) as $cat)
-                        <li><a href="{{ route('searchproduct', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
+                        <li><a href="{{ route('shop', ['category' => $cat->slug]) }}">{{ $cat->name }}</a></li>
                     @endforeach
                 </ul>
             </div>
@@ -99,8 +99,8 @@
                 <ul>
                     <li><a href="{{ url('/about') }}">About Us</a></li>
                     <li><a href="{{ url('/contact') }}">Contact Us</a></li>
-                    <li><a href="{{ route('cartproduct') }}">Cart</a></li>
-                    <li><a href="{{ route('billingdetails') }}">Checkout</a></li>
+                    <li><a href="{{ route('cart.index') }}">Cart</a></li>
+                    <li><a href="{{ route('checkout.index') }}">Checkout</a></li>
                 </ul>
             </div>
             <div class="col-lg-3 col-md-6 mb-4">

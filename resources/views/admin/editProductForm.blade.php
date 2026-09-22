@@ -3,8 +3,8 @@
 @section('content')
 
 <div class="wb-admin__actions mb-3">
-    <a href="{{ route('manageProductImages', $product->id) }}" class="wb-btn wb-btn--ghost wb-btn--sm">
-        <x-icon name="image" :size="15" /> Manage Images ({{ $product->images()->count() }})
+    <a href="{{ route('admin.products.images.index', $product->id) }}" class="wb-btn wb-btn--ghost wb-btn--sm">
+        <x-icon name="image" :size="15" /> Manage Images ({{ $product->images->count() }})
     </a>
 </div>
 
@@ -19,8 +19,9 @@
         </div>
     @endif
 
-    <form action="{{url('/admin/updateproduct/'.$product->id)}}" method="post">
+    <form action="{{ route('admin.products.update', $product->id) }}" method="post">
         {{csrf_field()}}
+        @method('PUT')
 
         <div class="form-group">
             <label for="name">Product Name</label>
@@ -55,7 +56,7 @@
 
         <div class="row">
             <div class="col-md-4 form-group">
-                <label for="category_id">Category</label>
+                <label for="category_id">Category <a href="{{ route('admin.categories.index') }}" style="font-weight:400;font-size:.8rem;">(manage categories)</a></label>
                 <select class="form-control" name="category_id" id="category_id" required>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" @selected($product->category_id === $cat->id)>{{ $cat->name }}</option>
@@ -89,7 +90,7 @@
         </div>
 
         <button type="submit" name="submit" class="wb-btn wb-btn--accent">Save Changes</button>
-        <a href="{{ url('/admin') }}" class="wb-btn wb-btn--ghost">Cancel</a>
+        <a href="{{ route('admin.products.index') }}" class="wb-btn wb-btn--ghost">Cancel</a>
     </form>
 </div>
 

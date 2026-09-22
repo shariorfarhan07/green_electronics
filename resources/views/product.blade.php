@@ -10,7 +10,7 @@
         <h2 class="wb-page-header__title">{{ $product->name }}</h2>
         <nav class="wb-page-header__crumb">
             <a href="{{ url('/') }}" style="color:inherit;">Home</a> <span class="brd-separetor">/</span>
-            <a href="{{ route('searchproduct') }}" style="color:inherit;">Shop</a> <span class="brd-separetor">/</span>
+            <a href="{{ route('shop') }}" style="color:inherit;">Shop</a> <span class="brd-separetor">/</span>
             <span class="active">{{ $product->name }}</span>
         </nav>
     </div>
@@ -57,10 +57,10 @@
                 </div>
 
                 <div class="wb-pd__actions">
-                    <a href="{{ route('AddToCartProduct', ['id' => $product->id]) }}" class="wb-btn wb-btn--primary">
+                    <a href="{{ route('cart.add', ['id' => $product->id]) }}" class="wb-btn wb-btn--primary">
                         <x-icon name="cart" :size="17" /> Add to Cart
                     </a>
-                    <a href="{{ auth()->check() ? route('AddToWishListProduct', ['id' => $product->id]) : route('login') }}" class="wb-btn wb-btn--ghost">
+                    <a href="{{ auth()->check() ? route('wishlist.add', ['id' => $product->id]) : route('login') }}" class="wb-btn wb-btn--ghost">
                         <x-icon name="heart" :size="17" /> Wishlist
                     </a>
                 </div>

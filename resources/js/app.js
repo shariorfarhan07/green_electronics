@@ -57,6 +57,83 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Admin: drag-and-drop multi-image picker (create/edit product forms)
+    document.querySelectorAll('[data-image-dropzone]').forEach(function (zone) {
+        var input = zone.querySelector('input[type="file"]');
+        var preview = zone.parentElement.querySelector('[data-image-preview]');
+        if (!input) return;
+
+        var files = [];
+
+        function render() {
+            if (!preview) return;
+            preview.innerHTML = '';
+            files.forEach(function (file, index) {
+                var tile = document.createElement('div');
+                tile.className = 'wb-admin__image-tile';
+
+                var img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.alt = file.name;
+                tile.appendChild(img);
+
+                if (index === 0) {
+                    var badge = document.createElement('span');
+                    badge.className = 'wb-admin__badge wb-admin__image-primary';
+                    badge.textContent = 'Primary';
+                    tile.appendChild(badge);
+                }
+
+                var remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'wb-admin__icon-btn wb-admin__icon-btn--danger wb-admin__image-remove';
+                remove.innerHTML = '&times;';
+                remove.addEventListener('click', function () {
+                    files.splice(index, 1);
+                    sync();
+                });
+                tile.appendChild(remove);
+
+                preview.appendChild(tile);
+            });
+        }
+
+        function sync() {
+            var transfer = new DataTransfer();
+            files.forEach(function (file) { transfer.items.add(file); });
+            input.files = transfer.files;
+            render();
+        }
+
+        function addFiles(fileList) {
+            Array.prototype.forEach.call(fileList, function (file) {
+                if (file.type.match(/^image\//)) { files.push(file); }
+            });
+            sync();
+        }
+
+        zone.addEventListener('click', function () { input.click(); });
+        input.addEventListener('change', function () { addFiles(input.files); });
+
+        ['dragenter', 'dragover'].forEach(function (evt) {
+            zone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.add('is-dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(function (evt) {
+            zone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.remove('is-dragover');
+            });
+        });
+        zone.addEventListener('drop', function (e) {
+            if (e.dataTransfer && e.dataTransfer.files) { addFiles(e.dataTransfer.files); }
+        });
+    });
+
     // Quantity stepper (visual only unless data-href-base is present)
     document.querySelectorAll('[data-qty]').forEach(function (wrap) {
         var input = wrap.querySelector('input');

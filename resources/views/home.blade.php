@@ -11,10 +11,10 @@
                     Email: <strong>{{ Auth::user()->email }}</strong>
                 </p>
                 @if($userdata->isAdmin())
-                    <a href="{{ url('admin') }}" class="wb-btn wb-btn--primary">Go to Admin Panel</a>
+                    <a href="{{ route('admin.products.index') }}" class="wb-btn wb-btn--primary">Go to Admin Panel</a>
                 @else
                     <a href="{{ route('homepage') }}" class="wb-btn wb-btn--accent">Continue Shopping</a>
-                    <a href="{{ route('WishListProduct') }}" class="wb-btn wb-btn--ghost">My Wishlist</a>
+                    <a href="{{ route('wishlist.index') }}" class="wb-btn wb-btn--ghost">My Wishlist</a>
                 @endif
             </div>
         </div>

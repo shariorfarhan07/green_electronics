@@ -29,7 +29,7 @@ class ProductsController extends Controller
       return view("index")->with('products1',$products1)->with('products2',$products2)->with('products3',$products3)->with('products4',$products4)->with('products5',$products5);
   }
 
-public function showpaymentpage(){
+public function checkoutIndex(){
     $cart=Session::get('cart');
     if(!$cart || count($cart->items) === 0){
         return redirect()->route('homepage');
@@ -40,7 +40,7 @@ public function showpaymentpage(){
 
 
 
-  public function billingconfirm(Request $request){
+  public function checkoutStore(Request $request){
       $first_name=$request->input('firstname');
       $last_name=$request->input('lastname');
 
@@ -61,9 +61,11 @@ public function showpaymentpage(){
       if($paymentmethod=='bkash'){
           $paymentnumber=$request->input('paymentnumber');
           $txid=$request->input('txid');
+          $codAmount=null;
       }else{
           $paymentnumber='cash on delevery';
           $txid='cash on delevery';
+          $paymentmethod='cod';
       }
 
 
@@ -72,7 +74,8 @@ public function showpaymentpage(){
       if($cart){
           //dump($cart);
           $date=date('Y-m-d H:i:s');
-          $newOrderArray=array('shipping'=>$shipping,'zip'=>$zip,'date'=>$date,'txid'=>$txid,'bkashnumber'=>$paymentnumber,'status'=>'our representative will call you','payment'=>$cart->totalPrice,'name'=>$name,'email'=>$email,'phone'=>$phone,'address'=>$address,'division'=>$division,'city'=>$city);
+          $codAmount = $paymentmethod === 'cod' ? ($cart->totalPrice + $shipping) : null;
+          $newOrderArray=array('shipping'=>$shipping,'zip'=>$zip,'date'=>$date,'txid'=>$txid,'bkashnumber'=>$paymentnumber,'payment_method'=>$paymentmethod,'cod_amount'=>$codAmount,'status'=>'our representative will call you','payment'=>$cart->totalPrice,'name'=>$name,'email'=>$email,'phone'=>$phone,'address'=>$address,'division'=>$division,'city'=>$city);
           $created_order=DB::table('orders')->insert($newOrderArray);
           $order_id=DB::getPdo()->lastInsertId();
           foreach ($cart->items as $cart_item){
@@ -124,25 +127,25 @@ public function showpaymentpage(){
 
 
   }
-  public function AddToWishListProduct(Request $request,$id){
+  public function addToWishlist(Request $request,$id){
       $userId = Auth::id();
       $exist=DB::table('wishlist')->where('user_id', '=',$userId)->where('product_id', '=', $id)->exists();
 
       if($exist){
-          return redirect()->route('WishListProduct');
+          return redirect()->route('wishlist.index');
       }else{
           $s=['user_id'=>$userId,'product_id'=>$id];
           DB::table('wishlist')->insert($s);
       }
-     return redirect()->route('WishListProduct');
+     return redirect()->route('wishlist.index');
 
   }
-  public function RemoveFromWishListProduct(Request $request,$id){
+  public function removeFromWishlist(Request $request,$id){
       $userId = Auth::id();
       DB::table('wishlist')->where('user_id', '=',$userId)->where('product_id', '=', $id)->delete();
-      return redirect()->route('WishListProduct');
+      return redirect()->route('wishlist.index');
   }
-  public function showWishList(){
+  public function wishlistIndex(){
       $userId = Auth::id();
       $exist=DB::table('wishlist')->where('user_id', $userId)->exists();
       if($exist){
@@ -156,7 +159,7 @@ public function showpaymentpage(){
 
 
 
-  public function AddToCartProduct(Request $request,$id){
+  public function addToCart(Request $request,$id){
       $prevCart=$request-> session()->get('cart');
       $cart=new Cart($prevCart);
       $product=Product::find($id);
@@ -165,7 +168,7 @@ public function showpaymentpage(){
       //dump($cart);
       return redirect()-> route('homepage');
   }
-  public function showCart(){
+  public function cartIndex(){
       $cart=Session::get('cart');
       // cart is not empty
       if($cart){
@@ -177,13 +180,13 @@ public function showpaymentpage(){
       }
 
   }
-  public function adjustcart(Request $request,$id,$number){
+  public function updateCartQuantity(Request $request,$id,$number){
       $prevCart=$request-> session()->get('cart');
       $cart=new Cart($prevCart);
       $cart->removeFromCart($id,$number);
       $request->session()->put('cart',$cart);
       //dump($cart);
-      return redirect()-> route('cartproduct');
+      return redirect()-> route('cart.index');
 
   }
 

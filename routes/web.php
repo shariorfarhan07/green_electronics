@@ -12,82 +12,72 @@ use App\Http\Controllers\Auth\LoginController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-/*
-Route::get('/', function () {
-    return view('index');
-});
-*/
+
 Route::get('/', ["uses"=>"ProductsController@index","as"=>'homepage']);
 
-
-Route::get('comingsoon', function () {
-    return view('comingsoon');
-});
 Route::get('about', function () {
     return view('about');
-});
+})->name('about');
 Route::get('contact', function () {
     return view('contact');
-});
+})->name('contact');
+Route::get('coming-soon', function () {
+    return view('comingsoon');
+})->name('coming-soon');
+
+// product browsing (listing, category filter and free-text search all share one action)
 Route::get('shop', ['uses' => 'ProductsController@search', 'as' => 'shop']);
+Route::get('products/{id}', ['uses' => 'ProductsController@productView', 'as' => 'products.show']);
 
-Route::get('product', ['uses' => 'ProductsController@search', 'as' => 'productlist']);
+// cart
+Route::get('cart', ["uses"=>"ProductsController@cartIndex","as"=>'cart.index']);
+Route::get('cart/add/{id}', ['uses'=> 'ProductsController@addToCart', 'as'=>'cart.add']);
+Route::get('cart/items/{id}/{number}', ['uses'=> 'ProductsController@updateCartQuantity', 'as'=>'cart.update']);
 
-//wish list
-Route::get('product/addToWishList/{id}',['uses'=> 'ProductsController@AddToWishListProduct','as'=>'AddToWishListProduct'])->middleware('auth');
-Route::get('wishlist', ["uses"=>"ProductsController@showWishList","as"=>'WishListProduct'])->middleware('auth');
-Route::get('product/RemoveWishList/{id}',['uses'=> 'ProductsController@RemoveFromWishListProduct','as'=>'RemoveFromWishListProduct'])->middleware('auth');
+// wishlist
+Route::get('wishlist', ["uses"=>"ProductsController@wishlistIndex","as"=>'wishlist.index'])->middleware('auth');
+Route::get('wishlist/add/{id}', ['uses'=> 'ProductsController@addToWishlist', 'as'=>'wishlist.add'])->middleware('auth');
+Route::get('wishlist/remove/{id}', ['uses'=> 'ProductsController@removeFromWishlist', 'as'=>'wishlist.remove'])->middleware('auth');
 
-//cart routings
-Route::get('product/addTocart/{id}',['uses'=> 'ProductsController@AddToCartProduct','as'=>'AddToCartProduct']);
-Route::get('cart', ["uses"=>"ProductsController@showCart","as"=>'cartproduct']);
-Route::get('product/{id}/{number}',['uses'=> 'ProductsController@adjustcart','as'=>'adjustCart']);
-//product view routes
+// checkout
+Route::get('checkout', ['uses'=> 'ProductsController@checkoutIndex', 'as'=>'checkout.index']);
+Route::post('checkout', ['uses'=> 'ProductsController@checkoutStore', 'as'=>'checkout.store']);
 
-Route::get('productview/{id}',['uses'=> 'ProductsController@productView','as'=>'productView']);
-//search url
-Route::get('search',['uses'=> 'ProductsController@search','as'=>'searchproduct']);
+// social login (GitHub / Google via Socialite)
+Route::get('login/{platform}', [LoginController::class, 'redirectToProvider'])->name('social.redirect');
+Route::get('login/{platform}/callback', [LoginController::class, 'handleProviderCallback'])->name('social.callback');
 
-//billing & payment page
-Route::get('billing',['uses'=> 'ProductsController@showpaymentpage','as'=>'billingdetails']);
-Route::post('billingconfirm',['uses'=> 'ProductsController@billingconfirm','as'=>'billingconfirm']);
-
-
-
-//socialite
-//github & google
-Route::get('login/{platform}', [LoginController::class, 'redirectToProvider']);
-Route::get('login/{platform}/callback', [LoginController::class, 'handleProviderCallback']);
-
-
-
-
-
-
-//user authentication
+// stock Laravel auth scaffolding: login, register, password reset, email verification
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
+Route::get('account', 'HomeController@index')->name('account')->middleware('auth');
 
-//admin panel
-//displays product
-Route::get('admin',['uses'=>'Admin\AdminProductController@index' ,'as'=>'adminDisplayProduct'])->middleware('restictToAdmin');
-Route::get('admin/order',['uses'=>'Admin\AdminProductController@order' ,'as'=>'order'])->middleware('restictToAdmin');
-Route::get('admin/order/{id}',['uses'=>'Admin\AdminProductController@invoice' ,'as'=>'invoice'])->middleware('restictToAdmin');
+//admin panel — all routes below require an authenticated admin (see app/Http/Middleware/RestrictAccess.php)
+Route::prefix('admin')->middleware('restictToAdmin')->group(function () {
+    Route::redirect('/', '/admin/products');
 
+    Route::get('orders', ['uses' => 'Admin\AdminOrderController@index', 'as' => 'admin.orders.index']);
+    Route::get('orders/{id}', ['uses' => 'Admin\AdminOrderController@show', 'as' => 'admin.orders.show']);
+    Route::get('orders/{id}/edit', ['uses' => 'Admin\AdminOrderController@edit', 'as' => 'admin.orders.edit']);
+    Route::put('orders/{id}', ['uses' => 'Admin\AdminOrderController@update', 'as' => 'admin.orders.update']);
+    Route::post('orders/{id}/items', ['uses' => 'Admin\AdminOrderController@addItem', 'as' => 'admin.orders.items.store']);
+    Route::delete('orders/{id}/items/{itemId}', ['uses' => 'Admin\AdminOrderController@removeItem', 'as' => 'admin.orders.items.destroy']);
 
-//edit ptroduct details no images
-Route::get('admin/editproductform/{id}',['uses'=>'Admin\AdminProductController@editProductForm' ,'as'=>'editProductForm']);
-Route::post('admin/updateproduct/{id}',['uses'=>'Admin\AdminProductController@updateProduct' ,'as'=>'updateProduct']);
-//manage all images for a product (replaces the old fixed 4-slot image forms)
-Route::get('admin/product/{id}/images',['uses'=>'Admin\AdminProductController@manageProductImages' ,'as'=>'manageProductImages']);
-Route::post('admin/product/{id}/images',['uses'=>'Admin\AdminProductController@uploadProductImage' ,'as'=>'uploadProductImage']);
-Route::get('admin/product-image/{imageId}/delete',['uses'=>'Admin\AdminProductController@deleteProductImage' ,'as'=>'deleteProductImage']);
+    Route::get('products', ['uses' => 'Admin\AdminProductController@index', 'as' => 'admin.products.index']);
+    Route::get('products/create', ['uses' => 'Admin\AdminProductController@create', 'as' => 'admin.products.create']);
+    Route::post('products', ['uses' => 'Admin\AdminProductController@store', 'as' => 'admin.products.store']);
+    Route::get('products/{id}/edit', ['uses' => 'Admin\AdminProductController@edit', 'as' => 'admin.products.edit']);
+    Route::put('products/{id}', ['uses' => 'Admin\AdminProductController@update', 'as' => 'admin.products.update']);
+    Route::delete('products/{id}', ['uses' => 'Admin\AdminProductController@destroy', 'as' => 'admin.products.destroy']);
 
+    // multi-image management for a product (drag-and-drop upload)
+    Route::get('products/{id}/images', ['uses' => 'Admin\AdminProductController@images', 'as' => 'admin.products.images.index']);
+    Route::post('products/{id}/images', ['uses' => 'Admin\AdminProductController@storeImage', 'as' => 'admin.products.images.store']);
+    Route::delete('products/images/{imageId}', ['uses' => 'Admin\AdminProductController@destroyImage', 'as' => 'admin.products.images.destroy']);
 
-//post for details of the products
-//for creating product
-Route::get('admin/createproductform',['uses'=>'Admin\AdminProductController@createProductForm' ,'as'=>'admincreateproductform']);
-Route::post('admin/sendcreateproduct',['uses'=>'Admin\AdminProductController@sendCreateProductForm' ,'as'=>'adminsendcreateproductform']);
-//admin delete product
-Route::get('admin/deleteproduct/{id}',['uses'=>'Admin\AdminProductController@deleteProduct' ,'as'=>'deleteproduct']);
+    // category taxonomy management
+    Route::get('categories', ['uses' => 'Admin\AdminCategoryController@index', 'as' => 'admin.categories.index']);
+    Route::post('categories', ['uses' => 'Admin\AdminCategoryController@store', 'as' => 'admin.categories.store']);
+    Route::put('categories/{id}', ['uses' => 'Admin\AdminCategoryController@update', 'as' => 'admin.categories.update']);
+    Route::delete('categories/{id}', ['uses' => 'Admin\AdminCategoryController@destroy', 'as' => 'admin.categories.destroy']);
+});

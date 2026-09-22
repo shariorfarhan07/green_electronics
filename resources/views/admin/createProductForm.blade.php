@@ -13,13 +13,18 @@
         </div>
     @endif
 
-    <form action="{{route('adminsendcreateproductform')}}" method="post" enctype="multipart/form-data">
+    <form action="{{route('admin.products.store')}}" method="post" enctype="multipart/form-data">
         {{csrf_field()}}
 
         <div class="form-group">
-            <label for="images">Product Images</label>
-            <input type="file" class="form-control" name="images[]" id="images" multiple accept="image/png,image/jpeg,image/webp" required>
-            <small style="color:var(--ink-faint);">The first image becomes the primary image. You can add more later from the product list.</small>
+            <label>Product Images</label>
+            <div class="wb-admin__dropzone" data-image-dropzone>
+                <x-icon name="image" :size="28" />
+                <p class="mb-0" style="margin-top:.5rem;">Drag &amp; drop images here, or click to browse</p>
+                <small style="color:var(--ink-faint);">JPG, PNG or WebP, up to 2MB each. The first image becomes the primary image.</small>
+                <input type="file" name="images[]" id="images" multiple accept="image/png,image/jpeg,image/webp" hidden>
+            </div>
+            <div class="wb-admin__image-grid mt-3" data-image-preview></div>
         </div>
 
         <div class="form-group">
@@ -55,7 +60,7 @@
 
         <div class="row">
             <div class="col-md-4 form-group">
-                <label for="category_id">Category</label>
+                <label for="category_id">Category <a href="{{ route('admin.categories.index') }}" style="font-weight:400;font-size:.8rem;">(manage categories)</a></label>
                 <select class="form-control" name="category_id" id="category_id" required>
                     <option value="">Select category&hellip;</option>
                     @foreach($categories as $cat)

@@ -41,7 +41,7 @@
                         <x-icon name="box" :size="44" />
                         <h3>No products found</h3>
                         <p>Try browsing a different category or check back soon.</p>
-                        <a href="{{ route('searchproduct') }}" class="wb-btn wb-btn--accent">View All Products</a>
+                        <a href="{{ route('shop') }}" class="wb-btn wb-btn--accent">View All Products</a>
                     </div>
                 @endif
             </div>

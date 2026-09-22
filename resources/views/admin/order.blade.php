@@ -17,6 +17,7 @@
                 <th>Phone</th>
                 <th>Date</th>
                 <th>Payment</th>
+                <th>Status</th>
                 <th></th>
             </tr>
             @foreach($products as $product)
@@ -27,7 +28,13 @@
                 <td class="mono">{{$product['phone']}}</td>
                 <td>{{$product['date']}}</td>
                 <td>{{$product['bkashnumber']}}<br><span style="font-size:.78rem;color:var(--ink-faint);">{{$product['txid']}}</span></td>
-                <td><a href="/admin/order/{{$product['id']}}" class="wb-btn wb-btn--sm wb-btn--ghost">View Invoice</a></td>
+                <td><span class="wb-admin__badge">{{ $product['status'] }}</span></td>
+                <td>
+                    <div class="wb-admin__actions">
+                        <a href="{{ route('admin.orders.show', $product['id']) }}" class="wb-admin__icon-btn" title="View Invoice"><x-icon name="box" :size="14" /></a>
+                        <a href="{{ route('admin.orders.edit', $product['id']) }}" class="wb-admin__icon-btn" title="Edit"><x-icon name="edit" :size="14" /></a>
+                    </div>
+                </td>
             </tr>
             @endforeach
         </table>

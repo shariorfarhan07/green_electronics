@@ -8,8 +8,8 @@
     <div class="wb-offcanvas__body">
         <nav>
             <a href="{{ url('/') }}"><span>Home</span> <x-icon name="chevron-right" :size="16" /></a>
-            <a href="{{ route('searchproduct') }}"><span>Shop All</span> <x-icon name="chevron-right" :size="16" /></a>
-            <a href="{{ auth()->check() ? route('WishListProduct') : route('login') }}"><span>Wishlist</span> <x-icon name="chevron-right" :size="16" /></a>
+            <a href="{{ route('shop') }}"><span>Shop All</span> <x-icon name="chevron-right" :size="16" /></a>
+            <a href="{{ auth()->check() ? route('wishlist.index') : route('login') }}"><span>Wishlist</span> <x-icon name="chevron-right" :size="16" /></a>
             <a href="{{ url('/about') }}"><span>About</span> <x-icon name="chevron-right" :size="16" /></a>
             <a href="{{ url('/contact') }}"><span>Contact</span> <x-icon name="chevron-right" :size="16" /></a>
         </nav>
@@ -22,7 +22,7 @@
                         <x-icon name="chevron-down" :size="16" />
                     </summary>
                     <ul>
-                        <li><a href="{{ route('searchproduct', ['category' => $cat->slug]) }}">Browse all {{ $cat->name }}</a></li>
+                        <li><a href="{{ route('shop', ['category' => $cat->slug]) }}">Browse all {{ $cat->name }}</a></li>
                     </ul>
                 </details>
             @endforeach
@@ -50,20 +50,20 @@
                             <span class="mono" style="font-size:.78rem;color:var(--ink-soft);">Qty: {{ $item['quantity'] }}</span>
                             <div class="wb-cart-drawer__price">&#2547;{{ $item['price'] }}</div>
                         </div>
-                        <a href="{{ route('adjustCart', ['id' => $item['data']->id, 'number' => 0]) }}" class="wb-cart-drawer__remove" aria-label="Remove"><x-icon name="close" :size="16" /></a>
+                        <a href="{{ route('cart.update', ['id' => $item['data']->id, 'number' => 0]) }}" class="wb-cart-drawer__remove" aria-label="Remove"><x-icon name="close" :size="16" /></a>
                     </div>
                 @endforeach
             </div>
             <div class="wb-cart-drawer__foot">
                 <div class="wb-cart-drawer__total"><span>Subtotal</span><span>&#2547;{{ $cartforall->totalPrice }}</span></div>
-                <a href="{{ route('cartproduct') }}" class="wb-btn wb-btn--ghost wb-btn--block mb-2">View Cart</a>
-                <a href="{{ route('billingdetails') }}" class="wb-btn wb-btn--accent wb-btn--block">Checkout</a>
+                <a href="{{ route('cart.index') }}" class="wb-btn wb-btn--ghost wb-btn--block mb-2">View Cart</a>
+                <a href="{{ route('checkout.index') }}" class="wb-btn wb-btn--accent wb-btn--block">Checkout</a>
             </div>
         @else
             <div class="wb-empty-state" style="padding:3rem 1rem;">
                 <x-icon name="cart" :size="40" />
                 <p>Your cart is empty.</p>
-                <a href="{{ route('searchproduct') }}" class="wb-btn wb-btn--accent">Start Shopping</a>
+                <a href="{{ route('shop') }}" class="wb-btn wb-btn--accent">Start Shopping</a>
             </div>
         @endif
     </div>

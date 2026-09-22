@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Category;
-use App\Order;
-use App\Orders_Items;
 use App\Product;
 use App\ProductImage;
 use Illuminate\Http\Request;
@@ -23,32 +21,19 @@ class AdminProductController extends Controller
         return view("admin.AdmindisplayProducts",['products'=>$products ]);
 
     }
-    public function order(){
-        $products = Order::orderBy('date', 'desc')->paginate(20);
-        return view("admin.order",['products'=>$products ]);
 
-    }
-    public function invoice($id){
-        $products = Orders_Items::where('order_id', $id)->get();
-
-        $userdetails=Order::find($id);
-
-       return view("admin.invoice",['products'=>$products ,'customer'=>$userdetails]);
-
-    }
-
-    public function editProductForm($id){
-        $product = Product::findOrFail($id);
+    public function edit($id){
+        $product = Product::with('images')->findOrFail($id);
         $categories = Category::orderBy('name')->get();
         return view('admin.editProductForm', ['product' => $product, 'categories' => $categories]);
     }
 
-    public function manageProductImages($id){
+    public function images($id){
         $product = Product::with('images')->findOrFail($id);
         return view('admin.manageProductImages', ['product' => $product]);
     }
 
-    public function uploadProductImage(Request $request, $id){
+    public function storeImage(Request $request, $id){
         $product = Product::findOrFail($id);
 
         Validator::make($request->all(), [
@@ -69,10 +54,10 @@ class AdminProductController extends Controller
             ]);
         }
 
-        return redirect()->route('manageProductImages', $product->id)->withsuccess('Image uploaded.');
+        return redirect()->route('admin.products.images.index', $product->id)->withsuccess('Image uploaded.');
     }
 
-    public function deleteProductImage($imageId){
+    public function destroyImage($imageId){
         $image = ProductImage::findOrFail($imageId);
         $productId = $image->product_id;
 
@@ -81,14 +66,14 @@ class AdminProductController extends Controller
         }
         $image->delete();
 
-        return redirect()->route('manageProductImages', $productId);
+        return redirect()->route('admin.products.images.index', $productId)->withsuccess('Image removed.');
     }
 
-   public function createProductForm(){
+   public function create(){
         $categories = Category::orderBy('name')->get();
         return view('admin.createProductForm', ['categories' => $categories]);
    }
-   public function deleteProduct($id){
+   public function destroy($id){
         $product = Product::with('images')->findOrFail($id);
 
         foreach ($product->images as $image) {
@@ -98,10 +83,10 @@ class AdminProductController extends Controller
         }
 
         $product->delete();
-        return redirect()->route('adminDisplayProduct');
+        return redirect()->route('admin.products.index')->withsuccess('Product deleted.');
     }
 
-   public function sendCreateProductForm(Request $request){
+   public function store(Request $request){
         Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
@@ -142,10 +127,10 @@ class AdminProductController extends Controller
             ]);
         }
 
-        return redirect()->route('adminDisplayProduct')->withsuccess('Product created.');
+        return redirect()->route('admin.products.index')->withsuccess('Product created.');
    }
 
-    public function updateProduct(Request $request,$id){
+    public function update(Request $request,$id){
         $product = Product::findOrFail($id);
 
         Validator::make($request->all(), [
@@ -170,7 +155,7 @@ class AdminProductController extends Controller
             'price' => $request->input('price'),
         ]);
 
-        return redirect()->route('adminDisplayProduct')->withsuccess('Product updated.');
+        return redirect()->route('admin.products.index')->withsuccess('Product updated.');
 
     }
 }

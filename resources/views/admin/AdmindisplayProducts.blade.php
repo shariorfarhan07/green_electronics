@@ -16,7 +16,7 @@
 <div class="wb-admin__panel">
     <div class="wb-admin__panel-head">
         <h4>All Products</h4>
-        <a href="{{ route('admincreateproductform') }}" class="wb-btn wb-btn--accent wb-btn--sm">
+        <a href="{{ route('admin.products.create') }}" class="wb-btn wb-btn--accent wb-btn--sm">
             <x-icon name="plus" :size="15" /> Add New Product
         </a>
     </div>
@@ -61,9 +61,13 @@
                     </td>
                     <td>
                         <div class="wb-admin__actions">
-                            <a href="{{route('manageProductImages',$product->id)}}" class="wb-admin__icon-btn" title="Manage Images"><x-icon name="image" :size="14" /></a>
-                            <a href="{{route('editProductForm',$product->id)}}" class="wb-admin__icon-btn" title="Edit"><x-icon name="edit" :size="14" /></a>
-                            <a href="{{route('deleteproduct',$product->id)}}" class="wb-admin__icon-btn wb-admin__icon-btn--danger" title="Delete" onclick="return confirm('Delete this product?');"><x-icon name="trash" :size="14" /></a>
+                            <a href="{{route('admin.products.images.index',$product->id)}}" class="wb-admin__icon-btn" title="Manage Images"><x-icon name="image" :size="14" /></a>
+                            <a href="{{route('admin.products.edit',$product->id)}}" class="wb-admin__icon-btn" title="Edit"><x-icon name="edit" :size="14" /></a>
+                            <form action="{{ route('admin.products.destroy', $product->id) }}" method="post" onsubmit="return confirm('Delete this product?');" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="wb-admin__icon-btn wb-admin__icon-btn--danger" title="Delete"><x-icon name="trash" :size="14" /></button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -75,7 +79,7 @@
         <div class="wb-admin__empty">
             <x-icon name="box" :size="36" />
             <p>No products yet.</p>
-            <a href="{{ route('admincreateproductform') }}" class="wb-btn wb-btn--accent">Add your first product</a>
+            <a href="{{ route('admin.products.create') }}" class="wb-btn wb-btn--accent">Add your first product</a>
         </div>
     @endif
 </div>

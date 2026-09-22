@@ -1,137 +1,190 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<!------ Include the above in your HEAD tag ---------->
-<style>
-    body {
-        background: grey;
-        margin-top: 120px;
-        margin-bottom: 120px;
-    }
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Invoice #{{ $customer->id }} &middot; Green Electronics</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <style>
+        :root {
+            --ink: #111113;
+            --ink-soft: #5b5e66;
+            --ink-faint: #9a9ca3;
+            --paper-alt: #f6f6f7;
+            --line: #e8e8ea;
+            --accent: #157a4d;
+            --accent-soft: #e7f5ee;
+            --danger: #d9463a;
+            --radius-sm: 10px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--ink);
+            background: #ececee;
+        }
+        .invoice-toolbar {
+            max-width: 210mm;
+            margin: 16px auto 0;
+            padding: 0 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .invoice-toolbar a, .invoice-toolbar button {
+            font-family: inherit;
+            font-size: .85rem;
+            font-weight: 600;
+            border-radius: 999px;
+            padding: .55rem 1.1rem;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--ink);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+        .invoice-toolbar .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .invoice-toolbar-actions { display: flex; gap: .6rem; }
 
+        .invoice-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 16px auto 40px;
+            background: #fff;
+            padding: 16mm;
+            box-shadow: 0 8px 30px rgba(17,17,19,.12);
+            border-radius: var(--radius-sm);
+        }
+        .invoice-head { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 2px solid var(--ink); margin-bottom: 24px; }
+        .invoice-brand { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+        .invoice-brand span { color: var(--accent); }
+        .invoice-brand-meta { margin-top: 6px; font-size: .8rem; color: var(--ink-soft); line-height: 1.6; }
+        .invoice-title { text-align: right; }
+        .invoice-title h1 { margin: 0; font-size: 1.4rem; letter-spacing: .04em; text-transform: uppercase; }
+        .invoice-title .invoice-id { font-size: .85rem; color: var(--ink-soft); margin-top: 4px; }
+        .invoice-status { display: inline-block; margin-top: 8px; padding: .3rem .8rem; border-radius: 999px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; background: var(--accent-soft); color: var(--accent); }
 
+        .invoice-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+        .invoice-meta-block h4 { margin: 0 0 8px; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
+        .invoice-meta-block p { margin: 0 0 3px; font-size: .88rem; color: var(--ink); line-height: 1.5; }
+        .invoice-meta-block p.muted { color: var(--ink-soft); }
 
+        table.invoice-items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        table.invoice-items thead th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: #fff; background: var(--ink); padding: 10px 12px; }
+        table.invoice-items thead th:last-child, table.invoice-items tbody td:last-child { text-align: right; }
+        table.invoice-items tbody td { padding: 12px; font-size: .88rem; border-bottom: 1px solid var(--line); }
+        table.invoice-items tbody tr:last-child td { border-bottom: none; }
 
-<div class="container" id='container1'>
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="row p-5">
-                        <div class="col-md-6">
-                            <h1>Green Electronics</h1>
-                            <h2>Call:01875589192</h2>
-                            <h5>greenelectronicsbd@gmail.com</h5>
+        .invoice-totals { margin-left: auto; width: 280px; }
+        .invoice-totals .row { display: flex; justify-content: space-between; padding: 7px 0; font-size: .88rem; color: var(--ink-soft); }
+        .invoice-totals .row.grand { border-top: 2px solid var(--ink); margin-top: 6px; padding-top: 12px; font-size: 1.1rem; font-weight: 800; color: var(--ink); }
 
-                            <p class="font-weight-bold mb-4">Payment Details</p>
-                            <p class="mb-1"><span class="text-muted">Payment: </span>
-                                @if($customer['txid']=='cash on delevery')
-                                cash on delevery
-                                @else
-                                paid by bkash
-                                @endif
+        .invoice-footnote { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: .78rem; color: var(--ink-faint); text-align: center; }
 
-                            </p>
-                        </div>
+        @media print {
+            body { background: #fff; }
+            .invoice-toolbar { display: none; }
+            .invoice-page { box-shadow: none; margin: 0; border-radius: 0; width: auto; min-height: auto; }
+            @page { size: A4; margin: 0; }
+        }
+    </style>
+</head>
+<body>
 
-                        <div class="col-md-6 text-right">
-                            <p class="font-weight-bold mb-1">Order id#{{$customer['id']}}</p>
-                            <p class="text-muted">Order Date:{{$customer['date']}}</p>
-                            <p class="font-weight-bold mb-4">Client Information</p>
-                            <p class="mb-1">{{$customer['name']}}</p>
-                            <p>{{$customer['address']}}</p>
-                            <p class="mb-1">{{$customer['city']}},{{$customer['division']}},Zip-{{$customer['zip']}}</p>
-                            <p class="mb-1">{{$customer['phone']}}</p>
+<div class="invoice-toolbar">
+    <a href="{{ route('admin.orders.index') }}">&larr; Back to Orders</a>
+    <div class="invoice-toolbar-actions">
+        <a href="{{ route('admin.orders.edit', $customer->id) }}">Edit Order</a>
+        <button type="button" class="btn-accent" onclick="window.print()">Print Invoice</button>
+    </div>
+</div>
 
-
-                        </div>
-                    </div>
-
-
-
-                    <div class="row p-5">
-                        <div class="col-md-12">
-                            <table class="table">
-                                <thead>
-                                <tr style="background:#111113;color:#fff;">
-                                    <th class="border-0 text-uppercase small font-weight-bold">ID</th>
-                                    <th class="border-0 text-uppercase small font-weight-bold">Item</th>
-
-                                    <th class="border-0 text-uppercase small font-weight-bold">Quantity</th>
-                                    <th class="border-0 text-uppercase small font-weight-bold">Unit Cost</th>
-                                    <th class="border-0 text-uppercase small font-weight-bold">Total</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($products as $product)
-                                <tr>
-                                    <td>{{$product['id']}}</td>
-                                    <td>{{$product['item_name']}}/td>
-
-                                    <td>{{$product['qty']}}</td>
-                                    <td>{{$product['item_price']}}</td>
-                                    <td>{{$product['qty']*$product['item_price']}}</td>
-                                </tr>
-                                @endforeach
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="d-flex flex-row-reverse   p-4">
-
-
-
-                        @if($customer['discount'])
-                        <div class="py-3 px-5 text-right">
-                            <div class="mb-2">Grand Total</div>
-                            <div class="h2 font-weight-light">৳{{$customer['payment']+$customer['shipping']-$customer['discount']}}</div>
-                        </div>
-                        @else
-                        <div class="py-3 px-5 text-right">
-                            <div class="mb-2">Grand Total</div>
-                            <div class="h2 font-weight-light">৳{{$customer['payment']+$customer['shipping']}}</div>
-                        </div>
-
-                        @endif
-
-                        @if($customer['discount'])
-                        <div class="py-3 px-5 text-right">
-                            <div class="mb-2">Discount</div>
-                            <div class="h2 font-weight-light">৳{{$customer['discount']}}</div>
-                        </div>
-                        @endif
-                        <div class="py-3 px-5 text-right">
-                            <div class="mb-2">Delevery Charge</div>
-                            <div class="h2 font-weight-light">৳{{$customer['shipping']}}</div>
-                        </div>
-
-
-
-                        <div class="py-3 px-5 text-right">
-                            <div class="mb-2">Sub - Total amount</div>
-                            <div class="h2 font-weight-light">৳{{$customer['payment']}}</div>
-                        </div>
-
-
-                    </div>
-                    <button type="button" onclick="javascript:printLayer()" style="background:#157a4d;border-color:#157a4d;" class="btn btn-dark">Print Invoice</button>
-                </div>
-
+<div class="invoice-page">
+    <div class="invoice-head">
+        <div>
+            <div class="invoice-brand">Green<span>Electronics</span></div>
+            <div class="invoice-brand-meta">
+                Call: 01875589192<br>
+                greenelectronicsbd@gmail.com
             </div>
+        </div>
+        <div class="invoice-title">
+            <h1>Invoice</h1>
+            <div class="invoice-id">#{{ str_pad($customer->id, 6, '0', STR_PAD_LEFT) }}</div>
+            <div class="invoice-id">{{ $customer->date }}</div>
+            <div class="invoice-status">{{ $customer->status }}</div>
         </div>
     </div>
 
+    <div class="invoice-meta-grid">
+        <div class="invoice-meta-block">
+            <h4>Bill To</h4>
+            <p style="font-weight:600;">{{ $customer->name }}</p>
+            <p>{{ $customer->address }}</p>
+            <p>{{ $customer->city }}, {{ $customer->division }} &mdash; {{ $customer->zip }}</p>
+            <p class="muted">{{ $customer->phone }}</p>
+            @if($customer->email)
+                <p class="muted">{{ $customer->email }}</p>
+            @endif
+        </div>
+        <div class="invoice-meta-block">
+            <h4>Payment</h4>
+            <p>
+                @if($customer->txid=='cash on delevery' || $customer->txid=='cash on delivery')
+                    Cash on Delivery
+                @else
+                    Paid via bKash
+                @endif
+            </p>
+            @if($customer->bkashnumber && $customer->bkashnumber != 'cash on delevery')
+                <p class="muted">Number: {{ $customer->bkashnumber }}</p>
+            @endif
+            @if($customer->txid && $customer->txid != 'cash on delevery')
+                <p class="muted">Transaction ID: {{ $customer->txid }}</p>
+            @endif
+        </div>
+    </div>
 
+    <table class="invoice-items">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach($products as $index => $product)
+            <tr>
+                <td class="muted">{{ $index + 1 }}</td>
+                <td style="font-weight:600;">{{ $product['item_name'] }}</td>
+                <td>{{ $product['qty'] }}</td>
+                <td>&#2547;{{ number_format($product['item_price'], 2) }}</td>
+                <td>&#2547;{{ number_format($product['qty'] * $product['item_price'], 2) }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
 
+    <div class="invoice-totals">
+        <div class="row"><span>Subtotal</span><span>&#2547;{{ number_format($customer->payment, 2) }}</span></div>
+        <div class="row"><span>Shipping</span><span>&#2547;{{ number_format($customer->shipping, 2) }}</span></div>
+        @if($customer->discount)
+            <div class="row"><span>Discount</span><span>&minus;&#2547;{{ number_format($customer->discount, 2) }}</span></div>
+        @endif
+        <div class="row grand"><span>Grand Total</span><span>&#2547;{{ number_format($customer->payment + $customer->shipping - ($customer->discount ?: 0), 2) }}</span></div>
+    </div>
+
+    <div class="invoice-footnote">
+        Thank you for shopping with Green Electronics &mdash; Bangladesh's store for Arduino, sensors, robotics &amp; 3D printing.
+    </div>
 </div>
 
-
-
-<script>
-    function printLayer(){
-        window.print();
-    }
-</script>
+</body>
+</html>

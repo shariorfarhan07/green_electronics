@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="wb-admin__actions mb-3">
-    <a href="{{ route('editProductForm', $product->id) }}" class="wb-btn wb-btn--ghost wb-btn--sm">
+    <a href="{{ route('admin.products.edit', $product->id) }}" class="wb-btn wb-btn--ghost wb-btn--sm">
         <x-icon name="chevron-left" :size="15" /> Back to {{ $product->name }}
     </a>
 </div>
@@ -32,9 +32,13 @@
                         <span class="wb-admin__badge wb-admin__image-primary">Primary</span>
                     @endif
                     <img src="{{ Storage::disk('local')->url('product_images/'.$image->path) }}" alt="{{ $product->name }}">
-                    <a href="{{ route('deleteProductImage', $image->id) }}" class="wb-admin__icon-btn wb-admin__icon-btn--danger wb-admin__image-remove" title="Remove" onclick="return confirm('Remove this image?');">
-                        <x-icon name="close" :size="14" />
-                    </a>
+                    <form action="{{ route('admin.products.images.destroy', $image->id) }}" method="post" onsubmit="return confirm('Remove this image?');" class="wb-admin__image-remove">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="wb-admin__icon-btn wb-admin__icon-btn--danger" title="Remove">
+                            <x-icon name="close" :size="14" />
+                        </button>
+                    </form>
                 </div>
             @endforeach
         </div>
@@ -42,13 +46,15 @@
         <p style="color:var(--ink-soft);">No images uploaded yet. The first image you add becomes the primary image shown in listings.</p>
     @endif
 
-    <form action="{{ route('uploadProductImage', $product->id) }}" method="post" enctype="multipart/form-data">
+    <form action="{{ route('admin.products.images.store', $product->id) }}" method="post" enctype="multipart/form-data">
         {{ csrf_field() }}
-        <div class="wb-admin__dropzone">
+        <div class="wb-admin__dropzone" data-image-dropzone>
             <x-icon name="image" :size="28" />
-            <p class="mb-0" style="margin-top:.5rem;">Upload one or more images (JPG, PNG or WebP, up to 2MB each)</p>
-            <input type="file" name="images[]" multiple accept="image/png,image/jpeg,image/webp" required>
+            <p class="mb-0" style="margin-top:.5rem;">Drag &amp; drop images here, or click to browse</p>
+            <small style="color:var(--ink-faint);">JPG, PNG or WebP, up to 2MB each.</small>
+            <input type="file" name="images[]" multiple accept="image/png,image/jpeg,image/webp" hidden>
         </div>
+        <div class="wb-admin__image-grid mt-3" data-image-preview></div>
         <button type="submit" class="wb-btn wb-btn--accent mt-3">Upload</button>
     </form>
 </div>

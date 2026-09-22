@@ -10,7 +10,7 @@
 
 <div class="wb-checkout">
     <div class="container">
-        <form action="{{ route('billingconfirm') }}" method="post">
+        <form action="{{ route('checkout.store') }}" method="post">
             @csrf
             <div class="row">
                 <div class="col-lg-7 mb-4">
@@ -103,6 +103,18 @@
                 <div class="col-lg-5">
                     <div class="wb-summary" style="position:sticky;top:calc(var(--header-h) + 16px);">
                         <div class="wb-summary__title">Order Summary</div>
+                        <div class="wb-checkout-items mb-3">
+                            @foreach($cartforall->items as $item)
+                                <div class="wb-checkout-items__row">
+                                    <div class="wb-checkout-items__thumb">
+                                        <img src="{{ Storage::disk('local')->url('product_images/'.$item['data']->primary_image) }}" alt="{{ $item['data']->name }}">
+                                        <span class="wb-checkout-items__qty">{{ $item['quantity'] }}</span>
+                                    </div>
+                                    <div class="wb-checkout-items__name">{{ $item['data']->name }}</div>
+                                    <div class="wb-checkout-items__price">&#2547;{{ $item['price'] * $item['quantity'] }}</div>
+                                </div>
+                            @endforeach
+                        </div>
                         <div class="wb-summary__row"><span>Subtotal</span><span>&#2547;{{ $cartforall->totalPrice }}</span></div>
                         <div class="wb-summary__row"><span>Shipping</span><span id="wb-co-shipping">&#2547;60</span></div>
                         <div class="wb-summary__row wb-summary__row--total"><span>Total</span><span id="wb-co-total">&#2547;{{ $cartforall->totalPrice + 60 }}</span></div>

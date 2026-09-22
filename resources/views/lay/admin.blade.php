@@ -14,21 +14,24 @@
 
     <aside class="wb-admin__sidebar" id="wb-admin-sidebar">
         <div class="wb-admin__brand">
-            <a href="{{ url('/admin') }}" style="color:#fff;">Green<span>Electronics</span></a>
+            <a href="{{ route('admin.products.index') }}" style="color:#fff;">Green<span>Electronics</span></a>
             <button type="button" class="wb-offcanvas__close" data-close aria-label="Close menu" style="background:rgba(255,255,255,.1);color:#fff;">
                 <x-icon name="close" :size="16" />
             </button>
         </div>
         <nav class="wb-admin__nav">
             <div class="wb-admin__nav-group-title">Catalogue</div>
-            <a href="{{ url('/admin') }}" class="wb-admin__nav-link {{ request()->routeIs('adminDisplayProduct') ? 'is-active' : '' }}">
+            <a href="{{ route('admin.products.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.products.index') ? 'is-active' : '' }}">
                 <x-icon name="grid" :size="17" /> All Products
             </a>
-            <a href="{{ route('admincreateproductform') }}" class="wb-admin__nav-link {{ request()->routeIs('admincreateproductform') ? 'is-active' : '' }}">
+            <a href="{{ route('admin.products.create') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.products.create') ? 'is-active' : '' }}">
                 <x-icon name="plus" :size="17" /> Add New Product
             </a>
+            <a href="{{ route('admin.categories.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.categories.index') ? 'is-active' : '' }}">
+                <x-icon name="filter" :size="17" /> Categories
+            </a>
             <div class="wb-admin__nav-group-title">Sales</div>
-            <a href="{{ route('order') }}" class="wb-admin__nav-link {{ request()->routeIs('order') ? 'is-active' : '' }}">
+            <a href="{{ route('admin.orders.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.orders.index') ? 'is-active' : '' }}">
                 <x-icon name="box" :size="17" /> Orders
             </a>
         </nav>
