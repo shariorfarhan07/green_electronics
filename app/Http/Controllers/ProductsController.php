@@ -14,15 +14,22 @@ class ProductsController extends Controller
 {
     //
   public function index(){
+      // Rails are keyed by top-level section, so they must pull from every
+      // subcategory beneath that section too.
       $byCategory = function ($slug) {
-          return Product::with(['images', 'category'])->whereHas('category', function ($q) use ($slug) {
-              $q->where('slug', $slug);
-          })->orderBy('id', 'desc')->take(7)->get();
+          $section = Category::with('children')->where('slug', $slug)->first();
+          if (!$section) {
+              return collect();
+          }
+
+          return Product::with(['images', 'category'])
+              ->whereIn('category_id', $section->selfAndDescendantIds())
+              ->orderBy('id', 'desc')->take(7)->get();
       };
 
-      $products1 = $byCategory('development-boards');
-      $products2 = $byCategory('robotics-rc');
-      $products3 = $byCategory('cnc-3d-printers');
+      $products1 = $byCategory('arduino');
+      $products2 = $byCategory('robotics');
+      $products3 = $byCategory('sensor');
       $products4 = Product::with(['images', 'category'])->orderBy('id', 'desc')->take(12)->get();
       $products5 = Product::with(['images', 'category'])->orderBy('sold', 'desc')->take(12)->get();
 
@@ -103,10 +110,14 @@ public function checkoutIndex(){
 
       $query = Product::with(['images', 'category'])->orderBy('id', 'desc');
 
-      if ($categorySlug) {
-          $query->whereHas('category', function ($q) use ($categorySlug) {
-              $q->where('slug', $categorySlug);
-          });
+      $activeCategory = $categorySlug
+          ? Category::with('children')->where('slug', $categorySlug)->first()
+          : null;
+
+      if ($activeCategory) {
+          // Selecting a top-level section should return everything filed under any of
+          // its subcategories, not just products pinned directly to the section itself.
+          $query->whereIn('category_id', $activeCategory->selfAndDescendantIds());
       } elseif ($searchText) {
           $query->where(function ($q) use ($searchText) {
               $q->where('name', 'LIKE', '%'.$searchText.'%')
@@ -115,8 +126,7 @@ public function checkoutIndex(){
           });
       }
 
-      $products = $query->paginate(12);
-      $activeCategory = $categorySlug ? Category::where('slug', $categorySlug)->first() : null;
+      $products = $query->paginate(12)->withQueryString();
 
       return view("shop", compact("products", "activeCategory"));
   }

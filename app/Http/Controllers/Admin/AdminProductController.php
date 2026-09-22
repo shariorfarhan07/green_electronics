@@ -24,7 +24,7 @@ class AdminProductController extends Controller
 
     public function edit($id){
         $product = Product::with('images')->findOrFail($id);
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::with('children')->roots()->get();
         return view('admin.editProductForm', ['product' => $product, 'categories' => $categories]);
     }
 
@@ -70,7 +70,7 @@ class AdminProductController extends Controller
     }
 
    public function create(){
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::with('children')->roots()->get();
         return view('admin.createProductForm', ['categories' => $categories]);
    }
    public function destroy($id){

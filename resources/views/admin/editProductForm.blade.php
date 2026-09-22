@@ -58,8 +58,13 @@
             <div class="col-md-4 form-group">
                 <label for="category_id">Category <a href="{{ route('admin.categories.index') }}" style="font-weight:400;font-size:.8rem;">(manage categories)</a></label>
                 <select class="form-control" name="category_id" id="category_id" required>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat->id }}" @selected($product->category_id === $cat->id)>{{ $cat->name }}</option>
+                    @foreach($categories as $section)
+                        <optgroup label="{{ $section->name }}">
+                            <option value="{{ $section->id }}" @selected($product->category_id === $section->id)>{{ $section->name }} (general)</option>
+                            @foreach($section->children as $child)
+                                <option value="{{ $child->id }}" @selected($product->category_id === $child->id)>{{ $child->name }}</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
             </div>

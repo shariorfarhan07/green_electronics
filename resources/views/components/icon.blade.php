@@ -33,7 +33,25 @@ $paths = [
     'lock' => '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
     'edit' => '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
     'image' => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m21 15-5-5-9 9"/>',
+    // Category taxonomy icons
+    'board' => '<rect x="3" y="4" width="18" height="16" rx="2"/><rect x="6.5" y="7.5" width="4.5" height="4.5" rx=".6"/><path d="M15 7.5v9M11 16h4M6.5 16h1.5"/>',
+    'cpu' => '<rect x="6" y="6" width="12" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M9.5 2v4M14.5 2v4M9.5 18v4M14.5 18v4M2 9.5h4M2 14.5h4M18 9.5h4M18 14.5h4"/>',
+    'wifi' => '<path d="M2.5 8.8a15 15 0 0 1 19 0"/><path d="M5.6 12.2a10.5 10.5 0 0 1 12.8 0"/><path d="M8.8 15.6a6 6 0 0 1 6.4 0"/><circle cx="12" cy="19.2" r="1.1"/>',
+    'radar' => '<circle cx="12" cy="12" r="2"/><path d="M16.3 7.7a6 6 0 0 1 0 8.6M19.4 4.6a10.4 10.4 0 0 1 0 14.8M7.7 16.3a6 6 0 0 1 0-8.6M4.6 19.4a10.4 10.4 0 0 1 0-14.8"/>',
+    'robot' => '<rect x="4" y="8" width="16" height="12" rx="2.5"/><path d="M12 4.5V8"/><circle cx="12" cy="3.4" r="1.2"/><circle cx="9.2" cy="13" r="1.2"/><circle cx="14.8" cy="13" r="1.2"/><path d="M9.5 16.8h5"/>',
+    'antenna' => '<path d="M12 10.5V21"/><path d="M8.6 6.6a5 5 0 0 1 6.8 0"/><path d="M5.6 3.6a9.2 9.2 0 0 1 12.8 0"/><circle cx="12" cy="9.4" r="1.6"/>',
+    'monitor' => '<rect x="2.5" y="4" width="19" height="12" rx="2"/><path d="M9 20h6M12 16v4"/>',
+    'resistor' => '<path d="M2 12h3.2l2 -4.4 2.6 8.8 2.6-8.8 2.6 8.8 2-4.4H22"/>',
+    'ic' => '<rect x="6.5" y="5" width="11" height="14" rx="1.2"/><path d="M3.5 8.5h3M3.5 12h3M3.5 15.5h3M17.5 8.5h3M17.5 12h3M17.5 15.5h3"/><circle cx="9.4" cy="8" r=".9"/>',
+    'gauge' => '<path d="M3.8 17.5a9 9 0 1 1 16.4 0"/><path d="m12 17.5 4.2-5.4"/><circle cx="12" cy="17.5" r="1.4"/>',
+    'kit' => '<rect x="3" y="7.5" width="18" height="12.5" rx="2"/><path d="M3 12.5h18"/><path d="M9 7.5V5.6a1.4 1.4 0 0 1 1.4-1.4h3.2A1.4 1.4 0 0 1 15 5.6V7.5"/><path d="M10.4 12.5v2.6h3.2v-2.6"/>',
+    'printer' => '<path d="M4.5 3.5v17M19.5 3.5v17M4.5 3.5h15"/><rect x="9" y="8" width="6" height="3.2" rx=".6"/><path d="M12 11.2v3.3"/><path d="M6.5 18.5h11"/>',
+    'drone' => '<circle cx="5.8" cy="5.8" r="2.6"/><circle cx="18.2" cy="5.8" r="2.6"/><circle cx="5.8" cy="18.2" r="2.6"/><circle cx="18.2" cy="18.2" r="2.6"/><rect x="9.2" y="9.2" width="5.6" height="5.6" rx="1.4"/><path d="m7.7 7.7 1.6 1.6M16.3 7.7l-1.6 1.6M7.7 16.3l1.6-1.6M16.3 16.3l-1.6-1.6"/>',
+    'home' => '<path d="m3 10.6 9-7.1 9 7.1"/><path d="M5.6 9.6V20.5h12.8V9.6"/><path d="M9.8 20.5v-5.2h4.4v5.2"/>',
+    'wrench' => '<path d="M20.6 7.4a5.2 5.2 0 0 1-6.9 6.9L6.9 21 3 17.1l6.7-6.8a5.2 5.2 0 0 1 6.9-6.9l-3.1 3.1 1 3 3 1 3.1-3.1Z"/>',
+    'cable' => '<path d="M7 3v5M11 3v5"/><rect x="5" y="8" width="8" height="4.6" rx="1"/><path d="M9 12.6v3.9a4 4 0 0 0 4 4h3.5"/><circle cx="18.6" cy="20.5" r="1.6"/>',
+    'desktop' => '<rect x="2.5" y="4.5" width="12.5" height="9.5" rx="1.5"/><path d="M6 19.5h5.5M8.75 14v5.5"/><rect x="17.5" y="4.5" width="4" height="15" rx="1.2"/><path d="M19.5 7.5v.01M19.5 10v.01"/>',
 ];
 $d = $paths[$name] ?? $paths['box'];
 @endphp
-<svg xmlns="http://www.w3.org/2000/svg" width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="wb-icon" aria-hidden="true">{!! $d !!}</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" {{ $attributes->merge(['class' => 'wb-icon']) }} aria-hidden="true">{!! $d !!}</svg>

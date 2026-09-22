@@ -128,28 +128,92 @@ class ProductSeeder extends Seeder
         ],
     ];
 
+    /**
+     * Demo products are filed against the techshopbd-style leaf categories created by
+     * CategorySeeder. First matching name fragment wins; groups fall back to a default leaf.
+     */
+    const LEAF_MAP = [
+        'Arduino Uno R3' => 'arduino-arduino-board',
+        'Arduino Nano' => 'arduino-arduino-board',
+        'ESP32 DevKit' => 'esp-esp32',
+        'Raspberry Pi 4' => 'development-board-raspberry-pi-accessories',
+        'NodeMCU ESP8266' => 'esp-esp8266',
+        'STM32F103C8T6' => 'development-board-arm-development-board',
+        'TT Gear Motor' => 'robotics-motor',
+        'L298N' => 'robotics-motor-driver',
+        '4-Channel RC Transmitter' => 'robotics-controller',
+        'F450 Quadcopter' => 'drone-semi-professional-drone',
+        'MG90S Micro Servo' => 'robotics-actuator',
+        'PIR Motion Sensor HC-SR501' => 'sensor-motion',
+        'Ultrasonic Distance Sensor' => 'sensor-other-sensor',
+        'DHT22' => 'sensor-temperature',
+        'MQ-2' => 'sensor-gas',
+        'IR Obstacle Avoidance' => 'sensor-other-sensor',
+        'HC-05 Bluetooth' => 'wireless-transceiver-bluetooth',
+        'NRF24L01' => 'wireless-transceiver-rf',
+        'SIM800L' => 'wireless-transceiver-gsm-gps-gprs',
+        'NEO-6M GPS' => 'wireless-transceiver-gsm-gps-gprs',
+        'Creality Ender-3' => '3d-printer-accessories-3d-printing-machines',
+        'PLA Filament' => '3d-printer-accessories-3d-printer-filament',
+        'NEMA17 Stepper Motor' => 'robotics-motor',
+        'MK8 Extruder' => '3d-printer-accessories-3d-printing-machines',
+        'Resistor Kit' => 'basic-component-resistor',
+        'Ceramic Capacitor Kit' => 'basic-component-capacitor',
+        '5mm LED' => 'basic-component-led',
+        '2N2222' => 'basic-component-transistor',
+        'LM7805' => 'basic-component-regulator',
+        '60W Soldering Iron' => 'miscellaneous-soldering',
+        'Digital Multimeter DT830B' => 'instruments-digital-multimeters',
+        'Mini Breadboard' => 'miscellaneous-breadboard',
+        'Precision Screwdriver' => 'maintenance-tools-tools',
+        'Male-Female Jumper Wires' => 'accessories-cable',
+        'Dupont Connector' => 'accessories-connector',
+        'USB Type-C Cable' => 'accessories-cable',
+        'JST-XH' => 'accessories-connector',
+        '4-Channel 5V Relay' => 'miscellaneous-relay',
+        'WiFi Smart Plug' => 'home-automation-iot-device',
+        'PIR Motion Sensor Light' => 'home-automation-automatic-light',
+        'IR Remote Control Kit' => 'home-automation-remote',
+        'Arduino Starter Kit' => 'kits-starter-kits',
+        'ESP32 IoT Project Kit' => 'kits-starter-kits',
+        'Basic Electronics Component' => 'kits-starter-kits',
+        'Robotics Starter Kit' => 'kits-robotic-kits',
+    ];
+
+    const GROUP_FALLBACK = [
+        'development-boards' => 'development-board-other-development-board',
+        'robotics-rc' => 'robotics-other-robotics',
+        'sensors' => 'sensor-other-sensor',
+        'wireless-communication' => 'wireless-transceiver-rf',
+        'cnc-3d-printers' => '3d-printer-accessories-3d-printing-machines',
+        'components' => 'basic-component-resistor',
+        'tools-hardware' => 'maintenance-tools-tools',
+        'cables-connectors' => 'accessories-cable',
+        'home-automation' => 'home-automation-iot-device',
+        'beginner-kits' => 'kits-starter-kits',
+    ];
+
     public function run()
     {
         Storage::disk('public')->makeDirectory('product_images');
 
         $now = now();
+        $categoryIds = Category::pluck('id', 'slug');
 
         foreach ($this->catalogue as $slug => $data) {
-            $category = Category::create([
-                'name' => $data['name'],
-                'slug' => $slug,
-                'icon' => $data['icon'],
-                'blurb' => $data['blurb'],
-            ]);
-
             $image = $this->ensureCategoryImage($slug, $data['name']);
 
             foreach ($data['items'] as [$name, $price]) {
+                $leaf = self::GROUP_FALLBACK[$slug] ?? null;
+                foreach (self::LEAF_MAP as $needle => $target) {
+                    if (stripos($name, $needle) !== false) { $leaf = $target; break; }
+                }
+
                 $productId = DB::table('products')->insertGetId([
                     'name' => $name,
                     'slug' => Str::slug($name),
                     'sku' => strtoupper(Str::random(3)).'-'.rand(1000, 9999),
-                    'category_id' => $category->id,
+                    'category_id' => $categoryIds[$leaf] ?? null,
                     'subcategory' => null,
                     'brand' => null,
                     'description' => "Genuine {$name} sourced for makers, students and engineers. Ideal for prototyping and project builds.",

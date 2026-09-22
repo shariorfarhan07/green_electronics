@@ -162,19 +162,44 @@ a:hover { color: var(--accent-dark); }
 .wb-nav__categories-btn:hover { background: #000; }
 
 .wb-mega { position: relative; }
+// Two-pane mega menu: a rail of top-level sections on the left, and the hovered
+// section's subcategories in the panel on the right. 19 sections x ~7 children is
+// far too much to show at once, so the right pane is revealed on hover/focus.
 .wb-mega__panel {
   position: absolute; left: 0; top: 100%; margin-top: .6rem; background: #fff; border: 1px solid var(--line);
-  box-shadow: var(--shadow-md); border-radius: var(--radius); min-width: 680px; padding: 1.4rem; display: none; z-index: 50;
-  column-count: 2; column-gap: 1.5rem;
+  box-shadow: var(--shadow-md); border-radius: var(--radius); padding: .55rem; display: none; z-index: 50;
+  width: 286px;
 }
-.wb-mega:hover .wb-mega__panel { display: block; }
+.wb-mega:hover .wb-mega__panel, .wb-mega:focus-within .wb-mega__panel { display: block; }
+.wb-mega__section { position: relative; }
 .wb-mega__item {
-  display: flex; align-items: center; gap: .7rem; padding: .6rem .6rem; break-inside: avoid; border-radius: var(--radius-sm);
-  color: var(--ink);
+  display: flex; align-items: center; gap: .7rem; padding: .55rem .6rem; border-radius: var(--radius-sm);
+  color: var(--ink); font-size: .88rem;
   .wb-icon { color: var(--accent); flex-shrink: 0; }
+  .wb-mega__chev { margin-left: auto; color: var(--ink-faint); }
   &:hover { background: var(--paper-alt); color: var(--ink); }
-  small { display: block; color: var(--ink-faint); font-weight: 400; font-size: .74rem; }
+  small { display: block; color: var(--ink-faint); font-weight: 400; font-size: .72rem; }
 }
+.wb-mega__section:hover > .wb-mega__item { background: var(--accent-soft); color: var(--accent-dark); }
+.wb-mega__sub {
+  display: none; position: absolute; left: 100%; top: -.55rem; margin-left: .55rem;
+  background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow-md);
+  border-radius: var(--radius); padding: 1.1rem 1.2rem; width: 540px; max-height: 70vh; overflow-y: auto;
+}
+.wb-mega__section:hover > .wb-mega__sub, .wb-mega__section:focus-within > .wb-mega__sub { display: block; }
+.wb-mega__sub-head {
+  display: flex; align-items: center; gap: .55rem; font-weight: 700; font-size: .95rem;
+  padding-bottom: .7rem; margin-bottom: .55rem; border-bottom: 1px solid var(--line);
+  .wb-icon { color: var(--accent); }
+  small { display: block; font-weight: 400; font-size: .74rem; color: var(--ink-faint); }
+}
+.wb-mega__sub-grid { columns: 2; column-gap: 1.4rem; }
+.wb-mega__sub-link {
+  display: block; padding: .32rem .45rem; border-radius: 8px; font-size: .83rem;
+  color: var(--ink-soft); break-inside: avoid;
+  &:hover { background: var(--paper-alt); color: var(--accent-dark); }
+}
+.wb-mega__sub-all { display: inline-block; margin-top: .6rem; font-size: .8rem; font-weight: 600; color: var(--accent); }
 
 // Off-canvas mobile menu + mini cart
 .wb-offcanvas__backdrop {
@@ -319,6 +344,12 @@ a:hover { color: var(--accent-dark); }
 .wb-sidebar__item a { display: flex; justify-content: space-between; align-items: center; padding: .6rem .5rem; margin: 0 -.5rem; color: var(--ink-soft); font-size: .87rem; font-weight: 500; border-radius: var(--radius-sm); }
 .wb-sidebar__item a:hover { color: var(--ink); background: var(--paper-alt); }
 .wb-sidebar__item.is-active a { font-weight: 600; color: var(--ink); background: var(--accent-soft); }
+.wb-sidebar__children ul { list-style: none; margin: .1rem 0 .5rem; padding: 0 0 0 1.4rem; border-left: 2px solid var(--line); }
+.wb-sidebar__children a {
+  display: block; padding: .32rem .5rem; font-size: .82rem; color: var(--ink-soft); border-radius: 8px;
+  &:hover { background: var(--paper-alt); color: var(--accent-dark); }
+  &.is-active { color: var(--accent-dark); font-weight: 600; background: var(--accent-soft); }
+}
 .wb-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.3rem; flex-wrap: wrap; gap: .75rem; }
 .wb-toolbar__count { font-size: .85rem; color: var(--ink-soft); }
 .wb-empty-state { text-align: center; padding: 4rem 1rem; color: var(--ink-soft); }
@@ -516,6 +547,20 @@ a:hover { color: var(--accent-dark); }
 .wb-admin__image-tile img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
 .wb-admin__image-tile .wb-admin__image-remove { position: absolute; top: 6px; right: 6px; }
 .wb-admin__image-tile .wb-admin__image-primary { position: absolute; top: 6px; left: 6px; }
+// Admin category taxonomy editor
+.wb-admin__cat-section { border-bottom: 1px solid var(--line); padding: .9rem 1.25rem; }
+.wb-admin__cat-section:last-child { border-bottom: none; }
+.wb-admin__cat-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.wb-admin__cat-head .form-control { height: 34px; font-size: .85rem; }
+.wb-admin__cat-icon {
+  width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.wb-admin__cat-name { max-width: 210px; font-weight: 600; }
+.wb-admin__cat-children { margin: .6rem 0 0 46px; border-left: 2px solid var(--line); padding-left: 1rem; }
+.wb-admin__cat-child { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; padding: .28rem 0; }
+.wb-admin__cat-child .form-control { height: 30px; font-size: .82rem; max-width: 220px; }
+
 .wb-admin__dropzone { border: 2px dashed var(--line-strong); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--ink-soft); cursor: pointer; transition: border-color .15s, background .15s; }
 .wb-admin__dropzone:hover, .wb-admin__dropzone.is-dragover { border-color: var(--accent); background: var(--accent-soft); }
 .wb-admin__dropzone input[type="file"] { margin-top: 1rem; }

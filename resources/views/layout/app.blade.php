@@ -53,10 +53,29 @@
                 </a>
                 <div class="wb-mega__panel">
                     @foreach($navCategories ?? [] as $cat)
-                        <a href="{{ route('shop', ['category' => $cat->slug]) }}" class="wb-mega__item">
-                            <x-icon :name="$cat->icon" />
-                            <span>{{ $cat->name }}<small>{{ $cat->blurb }}</small></span>
-                        </a>
+                        <div class="wb-mega__section">
+                            <a href="{{ route('shop', ['category' => $cat->slug]) }}" class="wb-mega__item">
+                                <x-icon :name="$cat->icon" :size="18" />
+                                <span>{{ $cat->name }}</span>
+                                @if($cat->children->count())
+                                    <x-icon name="chevron-right" :size="14" class="wb-mega__chev" />
+                                @endif
+                            </a>
+                            @if($cat->children->count())
+                                <div class="wb-mega__sub">
+                                    <div class="wb-mega__sub-head">
+                                        <x-icon :name="$cat->icon" :size="18" />
+                                        <span>{{ $cat->name }}<small>{{ $cat->blurb }}</small></span>
+                                    </div>
+                                    <div class="wb-mega__sub-grid">
+                                        @foreach($cat->children as $child)
+                                            <a href="{{ route('shop', ['category' => $child->slug]) }}" class="wb-mega__sub-link">{{ $child->name }}</a>
+                                        @endforeach
+                                    </div>
+                                    <a href="{{ route('shop', ['category' => $cat->slug]) }}" class="wb-mega__sub-all">View all {{ $cat->name }} <x-icon name="chevron-right" :size="13" /></a>
+                                </div>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
             </li>

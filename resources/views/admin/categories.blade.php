@@ -20,15 +20,24 @@
     <form action="{{ route('admin.categories.store') }}" method="post">
         @csrf
         <div class="row">
-            <div class="col-md-4 form-group">
+            <div class="col-md-3 form-group">
                 <label for="name">Name</label>
-                <input type="text" class="form-control" name="name" id="name" placeholder="e.g. Development Boards" required>
-            </div>
-            <div class="col-md-4 form-group">
-                <label for="blurb">Short Description</label>
-                <input type="text" class="form-control" name="blurb" id="blurb" placeholder="Shown under the category name">
+                <input type="text" class="form-control" name="name" id="name" placeholder="e.g. Stepper Motor" required>
             </div>
             <div class="col-md-3 form-group">
+                <label for="parent_id">Section</label>
+                <select class="form-control" name="parent_id" id="parent_id">
+                    <option value="">— Top-level section —</option>
+                    @foreach($roots as $root)
+                        <option value="{{ $root->id }}">{{ $root->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3 form-group">
+                <label for="blurb">Short Description</label>
+                <input type="text" class="form-control" name="blurb" id="blurb" placeholder="Shown in the mega menu">
+            </div>
+            <div class="col-md-2 form-group">
                 <label for="icon">Icon</label>
                 <select class="form-control" name="icon" id="icon">
                     @foreach($icons as $icon)
@@ -45,61 +54,63 @@
 
 <div class="wb-admin__panel">
     <div class="wb-admin__panel-head">
-        <h4>All Categories ({{ $categories->count() }})</h4>
+        <h4>Taxonomy &mdash; {{ $sections->count() }} sections, {{ $sections->sum(fn($s) => $s->children->count()) }} subcategories</h4>
     </div>
 
-    @if($categories->count())
-    <div class="wb-admin__table-wrap">
-        <table class="wb-admin__table">
-            <thead>
-            <tr>
-                <th>Icon</th>
-                <th>Name</th>
-                <th>Slug</th>
-                <th>Short Description</th>
-                <th>Products</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach($categories as $category)
-                @php $editFormId = 'cat-edit-'.$category->id; @endphp
-                <tr>
-                    <td style="width:70px;"><x-icon :name="$category->icon" :size="20" /></td>
-                    <td style="min-width:160px;"><input form="{{ $editFormId }}" type="text" class="form-control" name="name" value="{{ $category->name }}" required></td>
-                    <td class="mono" style="color:var(--ink-faint);">{{ $category->slug }}</td>
-                    <td style="min-width:200px;"><input form="{{ $editFormId }}" type="text" class="form-control" name="blurb" value="{{ $category->blurb }}"></td>
-                    <td><span class="wb-admin__badge">{{ $category->products_count }}</span></td>
-                    <td>
-                        <div class="wb-admin__actions">
-                            <select form="{{ $editFormId }}" class="form-control" name="icon" style="width:auto;display:inline-block;">
-                                @foreach($icons as $icon)
-                                    <option value="{{ $icon }}" @selected($category->icon === $icon)>{{ $icon }}</option>
+    @foreach($sections as $section)
+        @php $editId = 'cat-edit-'.$section->id; @endphp
+        <div class="wb-admin__cat-section">
+            <div class="wb-admin__cat-head">
+                <span class="wb-admin__cat-icon"><x-icon :name="$section->icon" :size="18" /></span>
+                <input form="{{ $editId }}" type="text" name="name" value="{{ $section->name }}" class="form-control wb-admin__cat-name" required>
+                <input form="{{ $editId }}" type="text" name="blurb" value="{{ $section->blurb }}" class="form-control" placeholder="Short description">
+                <select form="{{ $editId }}" name="icon" class="form-control" style="max-width:130px;">
+                    @foreach($icons as $icon)
+                        <option value="{{ $icon }}" @selected($section->icon === $icon)>{{ $icon }}</option>
+                    @endforeach
+                </select>
+                <input form="{{ $editId }}" type="number" name="sort_order" value="{{ $section->sort_order }}" class="form-control" style="max-width:80px;" title="Sort order">
+                <input form="{{ $editId }}" type="hidden" name="parent_id" value="">
+                <span class="wb-admin__badge">{{ $section->products_count }} direct</span>
+                <button form="{{ $editId }}" type="submit" class="wb-admin__icon-btn" title="Save section"><x-icon name="check" :size="14" /></button>
+                <form id="{{ $editId }}" action="{{ route('admin.categories.update', $section->id) }}" method="post" style="display:none;">
+                    @csrf @method('PUT')
+                </form>
+                <form action="{{ route('admin.categories.destroy', $section->id) }}" method="post" onsubmit="return confirm('Delete this section?');" style="display:inline;">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="wb-admin__icon-btn wb-admin__icon-btn--danger" title="Delete section"><x-icon name="trash" :size="14" /></button>
+                </form>
+            </div>
+
+            @if($section->children->count())
+                <div class="wb-admin__cat-children">
+                    @foreach($section->children as $child)
+                        @php $childEditId = 'cat-edit-'.$child->id; @endphp
+                        <div class="wb-admin__cat-child">
+                            <input form="{{ $childEditId }}" type="text" name="name" value="{{ $child->name }}" class="form-control" required>
+                            <select form="{{ $childEditId }}" name="parent_id" class="form-control" style="max-width:200px;" title="Move to section">
+                                @foreach($roots as $root)
+                                    <option value="{{ $root->id }}" @selected($child->parent_id === $root->id)>{{ $root->name }}</option>
                                 @endforeach
                             </select>
-                            <button form="{{ $editFormId }}" type="submit" class="wb-admin__icon-btn" title="Save"><x-icon name="check" :size="14" /></button>
-                            <form id="{{ $editFormId }}" action="{{ route('admin.categories.update', $category->id) }}" method="post" style="display:none;">
-                                @csrf
-                                @method('PUT')
+                            <input form="{{ $childEditId }}" type="number" name="sort_order" value="{{ $child->sort_order }}" class="form-control" style="max-width:80px;" title="Sort order">
+                            <input form="{{ $childEditId }}" type="hidden" name="icon" value="{{ $child->icon }}">
+                            <span class="wb-admin__badge">{{ $child->products_count }}</span>
+                            <span class="mono" style="font-size:.72rem;color:var(--ink-faint);">{{ $child->slug }}</span>
+                            <button form="{{ $childEditId }}" type="submit" class="wb-admin__icon-btn" title="Save"><x-icon name="check" :size="14" /></button>
+                            <form id="{{ $childEditId }}" action="{{ route('admin.categories.update', $child->id) }}" method="post" style="display:none;">
+                                @csrf @method('PUT')
                             </form>
-                            <form action="{{ route('admin.categories.destroy', $category->id) }}" method="post" onsubmit="return confirm('Delete this category?');" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
+                            <form action="{{ route('admin.categories.destroy', $child->id) }}" method="post" onsubmit="return confirm('Delete this subcategory?');" style="display:inline;">
+                                @csrf @method('DELETE')
                                 <button type="submit" class="wb-admin__icon-btn wb-admin__icon-btn--danger" title="Delete"><x-icon name="trash" :size="14" /></button>
                             </form>
                         </div>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-    </div>
-    @else
-        <div class="wb-admin__empty">
-            <x-icon name="grid" :size="36" />
-            <p>No categories yet. Add your first one above.</p>
+                    @endforeach
+                </div>
+            @endif
         </div>
-    @endif
+    @endforeach
 </div>
 
 @endsection

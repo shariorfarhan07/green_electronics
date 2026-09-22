@@ -34,7 +34,9 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*',function ($view) use (&$navCategories)
         {
             if ($navCategories === null) {
-                $navCategories = Category::orderBy('id')->get();
+                // Roots with their children eager-loaded: one extra query for the whole
+                // two-level menu instead of one per section.
+                $navCategories = Category::with('children')->roots()->get();
             }
             $cart=Session::get('cart');
             $view->with('userdata',Auth::user())->with("cartforall",$cart)->with('navCategories', $navCategories);

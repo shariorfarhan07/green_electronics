@@ -22,7 +22,10 @@
                         <x-icon name="chevron-down" :size="16" />
                     </summary>
                     <ul>
-                        <li><a href="{{ route('shop', ['category' => $cat->slug]) }}">Browse all {{ $cat->name }}</a></li>
+                        @foreach($cat->children as $child)
+                            <li><a href="{{ route('shop', ['category' => $child->slug]) }}">{{ $child->name }}</a></li>
+                        @endforeach
+                        <li><a href="{{ route('shop', ['category' => $cat->slug]) }}" style="font-weight:600;color:var(--accent);">View all {{ $cat->name }}</a></li>
                     </ul>
                 </details>
             @endforeach

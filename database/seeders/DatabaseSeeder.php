@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        // Categories first: ProductSeeder files its demo products against the leaf
+        // categories this creates.
+        $this->call(CategorySeeder::class);
         $this->call(ProductSeeder::class);
     }
 }

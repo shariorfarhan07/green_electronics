@@ -24,9 +24,9 @@
 
 @php
     $railData = [
-        ['title' => 'Development Boards', 'items' => $products1, 'slug' => 'development-boards'],
-        ['title' => 'Robotics & RC', 'items' => $products2, 'slug' => 'robotics-rc'],
-        ['title' => 'CNC & 3D Printers', 'items' => $products3, 'slug' => 'cnc-3d-printers'],
+        ['title' => 'Arduino', 'items' => $products1, 'slug' => 'arduino'],
+        ['title' => 'Robotics', 'items' => $products2, 'slug' => 'robotics'],
+        ['title' => 'Sensors', 'items' => $products3, 'slug' => 'sensor'],
     ];
 @endphp
 
