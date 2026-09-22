@@ -23,38 +23,34 @@ Route::get('/', ["uses"=>"ProductsController@index","as"=>'homepage']);
 Route::get('comingsoon', function () {
     return view('comingsoon');
 });
+Route::get('about', function () {
+    return view('about');
+});
 Route::get('contact', function () {
     return view('contact');
 });
-Route::get('shop', function () {
-    return view('shop');
-});
+Route::get('shop', ['uses' => 'ProductsController@search', 'as' => 'shop']);
 
-Route::get('product', function () {
-    return view('shop');
-});
-Route::get('o', function () {
-    return view('orderForm');
-});
+Route::get('product', ['uses' => 'ProductsController@search', 'as' => 'productlist']);
 
 //wish list
-Route::get('product/addToWishList/{id}',['uses'=> 'productsController@AddToWishListProduct','as'=>'AddToWishListProduct'])->middleware('auth');
+Route::get('product/addToWishList/{id}',['uses'=> 'ProductsController@AddToWishListProduct','as'=>'AddToWishListProduct'])->middleware('auth');
 Route::get('wishlist', ["uses"=>"ProductsController@showWishList","as"=>'WishListProduct'])->middleware('auth');
-Route::get('product/RemoveWishList/{id}',['uses'=> 'productsController@RemoveFromWishListProduct','as'=>'RemoveFromWishListProduct'])->middleware('auth');
+Route::get('product/RemoveWishList/{id}',['uses'=> 'ProductsController@RemoveFromWishListProduct','as'=>'RemoveFromWishListProduct'])->middleware('auth');
 
 //cart routings
-Route::get('product/addTocart/{id}',['uses'=> 'productsController@AddToCartProduct','as'=>'AddToCartProduct']);
+Route::get('product/addTocart/{id}',['uses'=> 'ProductsController@AddToCartProduct','as'=>'AddToCartProduct']);
 Route::get('cart', ["uses"=>"ProductsController@showCart","as"=>'cartproduct']);
-Route::get('product/{id}/{number}',['uses'=> 'productsController@adjustcart','as'=>'adjustCart']);
+Route::get('product/{id}/{number}',['uses'=> 'ProductsController@adjustcart','as'=>'adjustCart']);
 //product view routes
 
-Route::get('productview/{id}',['uses'=> 'productsController@productView','as'=>'productView']);
+Route::get('productview/{id}',['uses'=> 'ProductsController@productView','as'=>'productView']);
 //search url
-Route::get('search',['uses'=> 'productsController@search','as'=>'searchproduct']);
+Route::get('search',['uses'=> 'ProductsController@search','as'=>'searchproduct']);
 
 //billing & payment page
-Route::get('billing',['uses'=> 'productsController@showpaymentpage','as'=>'billingdetails']);
-Route::post('billingconfirm',['uses'=> 'productsController@billingconfirm','as'=>'billingconfirm']);
+Route::get('billing',['uses'=> 'ProductsController@showpaymentpage','as'=>'billingdetails']);
+Route::post('billingconfirm',['uses'=> 'ProductsController@billingconfirm','as'=>'billingconfirm']);
 
 
 
@@ -83,17 +79,10 @@ Route::get('admin/order/{id}',['uses'=>'Admin\AdminProductController@invoice' ,'
 //edit ptroduct details no images
 Route::get('admin/editproductform/{id}',['uses'=>'Admin\AdminProductController@editProductForm' ,'as'=>'editProductForm']);
 Route::post('admin/updateproduct/{id}',['uses'=>'Admin\AdminProductController@updateProduct' ,'as'=>'updateProduct']);
-//edit product details not images
-//post request for updating image
-Route::get('admin/editproductimageform/{id}',['uses'=>'Admin\AdminProductController@editProductImageForm' ,'as'=>'editProductImageForm']);
-Route::post('admin/updateproductimageform/{id}',['uses'=>'Admin\AdminProductController@updateProductImageForm' ,'as'=>'sendEditProductImageForm']);
-
-Route::get('admin/editproductimageform1/{id}',['uses'=>'Admin\AdminProductController@editProductImageForm1' ,'as'=>'editProductImageForm1']);
-Route::post('admin/updateproductimageform1/{id}',['uses'=>'Admin\AdminProductController@updateProductImageForm1' ,'as'=>'sendEditProductImageForm1']);
-Route::get('admin/editproductimageform2/{id}',['uses'=>'Admin\AdminProductController@editProductImageForm2' ,'as'=>'editProductImageForm2']);
-Route::post('admin/updateproductimageform2/{id}',['uses'=>'Admin\AdminProductController@updateProductImageForm2' ,'as'=>'sendEditProductImageForm2']);
-Route::get('admin/editproductimageform3/{id}',['uses'=>'Admin\AdminProductController@editProductImageForm3' ,'as'=>'editProductImageForm3']);
-Route::post('admin/updateproductimageform3/{id}',['uses'=>'Admin\AdminProductController@updateProductImageForm3' ,'as'=>'sendEditProductImageForm3']);
+//manage all images for a product (replaces the old fixed 4-slot image forms)
+Route::get('admin/product/{id}/images',['uses'=>'Admin\AdminProductController@manageProductImages' ,'as'=>'manageProductImages']);
+Route::post('admin/product/{id}/images',['uses'=>'Admin\AdminProductController@uploadProductImage' ,'as'=>'uploadProductImage']);
+Route::get('admin/product-image/{imageId}/delete',['uses'=>'Admin\AdminProductController@deleteProductImage' ,'as'=>'deleteProductImage']);
 
 
 //post for details of the products

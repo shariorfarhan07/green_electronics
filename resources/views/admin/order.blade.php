@@ -1,37 +1,45 @@
-
-@extends('lay.Admin')
-
-
-
+@extends('lay.admin')
+@section('page-title', 'Orders')
 @section('content')
-<div class="container">
-    <h4 class="m-0 text-dark">Orders</h4>
-    <table style="width:90%" class="table">
-        <tr>
-            <th  scope="col">Order id</th>
-            <th scope="col">Name</th>
-            <th scope="col">Address</th>
-            <th scope="col">phone</th>
-            <th scope="col">Date</th>
-            <th scope="col">Payment</th>
-            <th scope="col">Invoice</th>
-        </tr>
-        @foreach($products as $product)
 
-        <tr>
+<div class="wb-admin__panel">
+    <div class="wb-admin__panel-head">
+        <h4>All Orders</h4>
+    </div>
 
-            <td scope="row">{{$product['id']}}</td>
-            <td>{{$product['name']}}</td>
-            <td>{{$product['address']}}</td>
-            <td>{{$product['phone']}}</td>
-            <td>{{$product['date']}}</td>
-            <td>{{$product['bkashnumber']}}<br>{{$product['txid']}}</td>
-            <td><a href="/admin/order/{{$product['id']}}">Check</a></td>
-        </tr>
-
-        @endforeach
-    </table>
-
-    {{$products->links()}}
+    @if($products->count())
+    <div class="wb-admin__table-wrap">
+        <table class="wb-admin__table">
+            <tr>
+                <th>Order ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Date</th>
+                <th>Payment</th>
+                <th></th>
+            </tr>
+            @foreach($products as $product)
+            <tr>
+                <td class="mono">#{{$product['id']}}</td>
+                <td style="font-weight:600;">{{$product['name']}}</td>
+                <td>{{$product['address']}}</td>
+                <td class="mono">{{$product['phone']}}</td>
+                <td>{{$product['date']}}</td>
+                <td>{{$product['bkashnumber']}}<br><span style="font-size:.78rem;color:var(--ink-faint);">{{$product['txid']}}</span></td>
+                <td><a href="/admin/order/{{$product['id']}}" class="wb-btn wb-btn--sm wb-btn--ghost">View Invoice</a></td>
+            </tr>
+            @endforeach
+        </table>
+    </div>
+    @else
+        <div class="wb-admin__empty">
+            <x-icon name="box" :size="36" />
+            <p>No orders yet.</p>
+        </div>
+    @endif
 </div>
+
+<div class="mt-3">{{$products->links()}}</div>
+
 @endsection

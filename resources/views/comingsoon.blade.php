@@ -1,22 +1,11 @@
 @extends('layout.app')
-<style>
-    .box{
-        height: 250px;
-        width: 100px;
-        font-size: 50px;
-        text-align: center;
-        padding-top: 50px;
-
-    }
-
-</style>
 @section('content')
-<div class="box container center1k">
 
-        Coming soon!!
-
-
+<div class="wb-coming-soon container">
+    <x-icon name="box" :size="52" />
+    <h2>Coming Soon</h2>
+    <p style="color:var(--ink-soft);">We're working on this page &mdash; check back shortly.</p>
+    <a href="{{ url('/') }}" class="wb-btn wb-btn--accent">Back to Home</a>
 </div>
-
 
 @endsection

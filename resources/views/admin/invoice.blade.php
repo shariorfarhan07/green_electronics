@@ -20,9 +20,9 @@
                 <div class="card-body p-0">
                     <div class="row p-5">
                         <div class="col-md-6">
-                            <h1>ElectronicsBagBd.com</h1>
+                            <h1>Green Electronics</h1>
                             <h2>Call:01875589192</h2>
-                            <h5>electronicsbagbd.com</h5>
+                            <h5>greenelectronicsbd@gmail.com</h5>
 
                             <p class="font-weight-bold mb-4">Payment Details</p>
                             <p class="mb-1"><span class="text-muted">Payment: </span>
@@ -54,7 +54,7 @@
                         <div class="col-md-12">
                             <table class="table">
                                 <thead>
-                                <tr class="bg-secondary text-light">
+                                <tr style="background:#111113;color:#fff;">
                                     <th class="border-0 text-uppercase small font-weight-bold">ID</th>
                                     <th class="border-0 text-uppercase small font-weight-bold">Item</th>
 
@@ -117,7 +117,7 @@
 
 
                     </div>
-                    <button type="button" onclick="javascript:printLayer()" class="btn btn-dark">Sign</button>
+                    <button type="button" onclick="javascript:printLayer()" style="background:#157a4d;border-color:#157a4d;" class="btn btn-dark">Print Invoice</button>
                 </div>
 
             </div>
