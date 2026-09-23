@@ -3,34 +3,72 @@
 namespace App\Http\Controllers;
 
 use App\Product;
+use App\Category;
 use App\Cart;
+use App\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Inertia\Inertia;
 class ProductsController extends Controller
 
 {
     //
   public function index(){
-      $products = Product::all();
-      $products1 = Product::orderBy('id', 'desc')->where('type2', 'DEVELOPMENT BOARDS')->take(7)->get();
-      $products2= Product::orderBy('id', 'desc')->where('type2', 'RC & DRONE')->take(7)->get();
-      $products3 = Product::orderBy('id', 'desc')->where('type2', 'CNC & 3D PRINTERS')->take(7)->get();
-      $products4 = Product::orderBy('id', 'desc')->take(12)->get();
-      $products5 = Product::orderBy('sold', 'desc')->take(12)->get();
+      // Rails are keyed by top-level section, so they must pull from every
+      // subcategory beneath that section too.
+      $byCategory = function ($slug) {
+          $section = Category::with('children')->where('slug', $slug)->first();
+          if (!$section) {
+              return collect();
+          }
 
-      return view("index")->with('products1',$products1)->with('products2',$products2)->with('products3',$products3)->with('products4',$products4)->with('products5',$products5);
+          return Product::with(['images', 'category'])
+              ->whereIn('category_id', $section->selfAndDescendantIds())
+              ->orderBy('id', 'desc')->take(7)->get();
+      };
+
+      $products1 = $byCategory('arduino');
+      $products2 = $byCategory('robotics');
+      $products3 = $byCategory('sensor');
+      $products4 = Product::with(['images', 'category'])->orderBy('id', 'desc')->take(12)->get();
+      $products5 = Product::with(['images', 'category'])->orderBy('sold', 'desc')->take(12)->get();
+
+      return Inertia::render('Home', [
+          'rails' => [
+              ['title' => 'Arduino', 'slug' => 'arduino', 'items' => $products1],
+              ['title' => 'Robotics', 'slug' => 'robotics', 'items' => $products2],
+              ['title' => 'Sensors', 'slug' => 'sensor', 'items' => $products3],
+          ],
+          'newArrivals' => $products4,
+          'bestSellers' => $products5,
+      ]);
   }
 
-public function showpaymentpage(){
- return view('orderForm');
+public function checkoutIndex(){
+    $cart=Session::get('cart');
+    if(!$cart || count($cart->items) === 0){
+        return redirect()->route('homepage');
+    }
+
+    // The orders-disabled variant is a branch inside the Checkout page component
+    // now (it reads the globally shared `ordersDisabled` prop), not its own view.
+    return Inertia::render('Checkout', [
+        'cartItems' => $cart,
+    ]);
 }
 
 
 
 
-  public function billingconfirm(Request $request){
+  public function checkoutStore(Request $request){
+      // Defense in depth: the checkout form is hidden behind orderClosed when this is
+      // on, but a direct POST (stale tab, curl) must still be rejected server-side.
+      if (Setting::bool('orders_disabled')) {
+          return redirect()->route('checkout.index');
+      }
+
       $first_name=$request->input('firstname');
       $last_name=$request->input('lastname');
 
@@ -51,9 +89,11 @@ public function showpaymentpage(){
       if($paymentmethod=='bkash'){
           $paymentnumber=$request->input('paymentnumber');
           $txid=$request->input('txid');
+          $codAmount=null;
       }else{
           $paymentnumber='cash on delevery';
           $txid='cash on delevery';
+          $paymentmethod='cod';
       }
 
 
@@ -62,19 +102,27 @@ public function showpaymentpage(){
       if($cart){
           //dump($cart);
           $date=date('Y-m-d H:i:s');
-          $newOrderArray=array('shipping'=>$shipping,'zip'=>$zip,'date'=>$date,'txid'=>$txid,'bkashnumber'=>$paymentnumber,'status'=>'our representative will call you','payment'=>$cart->totalPrice,'name'=>$name,'email'=>$email,'phone'=>$phone,'address'=>$address,'division'=>$division,'city'=>$city);
+          $codAmount = $paymentmethod === 'cod' ? ($cart->totalPrice + $shipping) : null;
+          $newOrderArray=array('user_id'=>Auth::id(),'shipping'=>$shipping,'zip'=>$zip,'date'=>$date,'txid'=>$txid,'bkashnumber'=>$paymentnumber,'payment_method'=>$paymentmethod,'cod_amount'=>$codAmount,'status'=>'processing','payment'=>$cart->totalPrice,'name'=>$name,'email'=>$email,'phone'=>$phone,'address'=>$address,'division'=>$division,'city'=>$city);
           $created_order=DB::table('orders')->insert($newOrderArray);
           $order_id=DB::getPdo()->lastInsertId();
           foreach ($cart->items as $cart_item){
               $item_id=$cart_item['data']['id'];
-              $item_name=$cart_item['data']['Name'];
+              $item_name=$cart_item['data']['name'];
               $item_price=$cart_item['data']['price'];
               $qty=$cart_item['quantity'];
               $newOrderItem=array('order_id'=>$order_id,'item_id'=>$item_id,'item_name'=>$item_name,'item_price'=>$item_price,'qty'=>$qty);
               $created_order_items=DB::table('orders_items')->insert($newOrderItem);
                   }
+          // Only the cart is cleared: Session::flush() here used to wipe the whole
+          // session, logging the customer out the moment they placed an order.
           Session::forget('cart');
-          Session::flush();
+
+          if (Auth::check()) {
+              return redirect()->route('account.orders.show', $order_id)
+                  ->withsuccess('Thanks for your order! You can track its status here.');
+          }
+
           return redirect()->route("homepage")->withsuccess('Thanks For Choosing us');
 
       }else{
@@ -85,86 +133,100 @@ public function showpaymentpage(){
 
 
   public function search(Request $request){
-   $searchText=$request->get('searchText');
-      $products=Product::where('Name','Like',"%".$searchText."%")->
-      orWhere('type1', 'LIKE', '%' . $searchText . '%')->
-      orWhere('type2', 'LIKE', '%' . $searchText . '%')->
-      orWhere('type3', 'LIKE', '%' . $searchText . '%')->paginate(3);
-      return view("shop",compact("products"));
+      $searchText = $request->get('searchText');
+      $categorySlug = $request->get('category');
+
+      $query = Product::with(['images', 'category'])->orderBy('id', 'desc');
+
+      $activeCategory = $categorySlug
+          ? Category::with('children')->where('slug', $categorySlug)->first()
+          : null;
+
+      if ($activeCategory) {
+          // Selecting a top-level section should return everything filed under any of
+          // its subcategories, not just products pinned directly to the section itself.
+          $query->whereIn('category_id', $activeCategory->selfAndDescendantIds());
+      } elseif ($searchText) {
+          $query->where(function ($q) use ($searchText) {
+              $q->where('name', 'LIKE', '%'.$searchText.'%')
+                ->orWhere('subcategory', 'LIKE', '%'.$searchText.'%')
+                ->orWhere('brand', 'LIKE', '%'.$searchText.'%');
+          });
+      }
+
+      $products = $query->paginate(12)->withQueryString();
+
+      return Inertia::render('Shop', [
+          'products' => $products,
+          'activeCategory' => $activeCategory,
+          'searchText' => $searchText,
+          'filters' => $request->only(['category', 'searchText']),
+      ]);
   }
 
   public function productView(Request $request,$id){
-      $product = Product::find($id);
-     // dump($product);
-      return view("product",compact("product"));
+      $product = Product::with(['images', 'category'])->findOrFail($id);
 
-
+      return Inertia::render('Product', [
+          'product' => $product,
+      ]);
   }
-  public function AddToWishListProduct(Request $request,$id){
+  public function addToWishlist(Request $request,$id){
       $userId = Auth::id();
       $exist=DB::table('wishlist')->where('user_id', '=',$userId)->where('product_id', '=', $id)->exists();
 
       if($exist){
-          return redirect()->route('WishListProduct');
+          return redirect()->route('wishlist.index');
       }else{
           $s=['user_id'=>$userId,'product_id'=>$id];
           DB::table('wishlist')->insert($s);
       }
-     return redirect()->route('WishListProduct');
+     return redirect()->route('wishlist.index');
 
   }
-  public function RemoveFromWishListProduct(Request $request,$id){
+  public function removeFromWishlist(Request $request,$id){
       $userId = Auth::id();
       DB::table('wishlist')->where('user_id', '=',$userId)->where('product_id', '=', $id)->delete();
-      return redirect()->route('WishListProduct');
+      return redirect()->route('wishlist.index');
   }
-  public function showWishList(){
+  public function wishlistIndex(){
       $userId = Auth::id();
-      $exist=DB::table('wishlist')->where('user_id', $userId)->exists();
-      if($exist){
-          $products=DB::table('wishlist')->where('user_id', $userId)->get();
-          $data=[];
-          foreach ($products as $product){
-              array_push($data,$product->product_id);
-          }
-          $products=DB::table('products')->where('id', $data)->get();
+      $productIds = DB::table('wishlist')->where('user_id', $userId)->pluck('product_id');
 
-          return view('wishlist')->with('products',$products);
-      }
-      return redirect()->route('homepage');
+      return Inertia::render('Wishlist', [
+          'products' => Product::with('images')->whereIn('id', $productIds)->get(),
+      ]);
   }
 
 
 
-  public function AddToCartProduct(Request $request,$id){
+  public function addToCart(Request $request,$id){
       $prevCart=$request-> session()->get('cart');
       $cart=new Cart($prevCart);
       $product=Product::find($id);
       $cart->addItem($id, $product);
       $request->session()->put('cart',$cart);
-      //dump($cart);
-      return redirect()-> route('homepage');
+
+      // back() rather than a fixed route: the cart can be added to from the
+      // home rails, the shop grid, a product page or the wishlist, and an
+      // Inertia visit should land the customer back where they were.
+      return redirect()->back();
   }
-  public function showCart(){
+  public function cartIndex(){
       $cart=Session::get('cart');
-      // cart is not empty
-      if($cart){
-          return view('cartproducts',['cartItems'=>$cart]);
-         //dump($cart);
-       //cart is empty
-      }else{
-       return redirect()->route("homepage");
+      if(!$cart || count($cart->items) === 0){
+          return redirect()->route('homepage');
       }
 
+      return Inertia::render('Cart', ['cartItems' => $cart]);
   }
-  public function adjustcart(Request $request,$id,$number){
+  public function updateCartQuantity(Request $request,$id,$number){
       $prevCart=$request-> session()->get('cart');
       $cart=new Cart($prevCart);
       $cart->removeFromCart($id,$number);
       $request->session()->put('cart',$cart);
-      //dump($cart);
-      return redirect()-> route('cartproduct');
 
+      return redirect()->back();
   }
 
 

@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Order;
-use App\Orders_Items;
+use App\Category;
 use App\Product;
-//use Dotenv\Validator;
+use App\ProductImage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Validator;
 
 
@@ -20,278 +18,250 @@ class AdminProductController extends Controller
 {
     //
     public function index(){
-        $products = Product::orderBy('created_at', 'desc')->paginate(6);
-        return view("admin.AdmindisplayProducts",['products'=>$products ]);
-
-    }
-    public function order(){
-        $products = Order::orderBy('date', 'desc')->paginate(20);
-        return view("admin.order",['products'=>$products ]);
-
-    }
-    public function invoice($id){
-        $products = Orders_Items::where('order_id', $id)->get();
-
-        $userdetails=Order::find($id);
-
-       return view("admin.invoice",['products'=>$products ,'customer'=>$userdetails]);
-
+        return Inertia::render('Admin/Products', [
+            'products' => Product::with(['category', 'images'])->orderBy('created_at', 'desc')->paginate(10),
+        ]);
     }
 
-    public function editProductForm($id){
-        $product=Product::find($id);
-     return view('admin.editProductForm',['product'=>$product]) ;
-    }
-    public function editProductImageForm($id){
-        $product=Product::find($id);
-        return view('admin.editProductImageForm',['product'=>$product]) ;
-    }
-    public function editProductImageForm1($id){
-        $product=Product::find($id);
-        return view('admin.editProductImageForm1',['product'=>$product]) ;
-    }
-    public function editProductImageForm2($id){
-        $product=Product::find($id);
-        return view('admin.editProductImageForm2',['product'=>$product]) ;
-    }
-    public function editProductImageForm3($id){
-        $product=Product::find($id);
-        return view('admin.editProductImageForm3',['product'=>$product]) ;
+    public function bulkForm(){
+        return Inertia::render('Admin/ProductsBulk');
     }
 
-   public function createProductForm(){
-        return view('admin.createProductForm');
+    /**
+     * CSV columns are deliberately plain (id, sku, name, category, price, stock) so the
+     * same file downloaded here can be edited (just the price column, usually) and
+     * re-uploaded via import() below — id is what ties a row back to a product.
+     */
+    public function export(){
+        $filename = 'products-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['id', 'sku', 'name', 'category', 'price', 'stock']);
+
+            Product::with('category')->orderBy('id')->chunk(200, function ($products) use ($out) {
+                foreach ($products as $product) {
+                    fputcsv($out, [
+                        $product->id,
+                        $product->sku,
+                        $product->name,
+                        $product->category->name ?? '',
+                        $product->price,
+                        $product->stock,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    public function import(Request $request){
+        Validator::make($request->all(), [
+            'csv' => 'required|file|mimes:csv,txt',
+        ])->validate();
+
+        $handle = fopen($request->file('csv')->getRealPath(), 'r');
+        $header = fgetcsv($handle);
+
+        if (!$header) {
+            fclose($handle);
+            return redirect()->route('admin.products.bulk')->withErrors(['csv' => 'The file is empty or not a valid CSV.']);
+        }
+
+        $header = array_map(fn($h) => strtolower(trim($h)), $header);
+        $idCol = array_search('id', $header);
+        $priceCol = array_search('price', $header);
+
+        if ($idCol === false || $priceCol === false) {
+            fclose($handle);
+            return redirect()->route('admin.products.bulk')->withErrors(['csv' => 'The CSV must have an "id" and a "price" column — export the current list first to get the right format.']);
+        }
+
+        $updated = 0;
+        $errors = [];
+        $row = 1;
+
+        while (($data = fgetcsv($handle)) !== false) {
+            $row++;
+            $id = trim($data[$idCol] ?? '');
+            $price = trim($data[$priceCol] ?? '');
+
+            if ($id === '' && $price === '') {
+                continue; // blank row
+            }
+
+            if (!ctype_digit($id)) {
+                $errors[] = "Row {$row}: invalid id \"{$id}\".";
+                continue;
+            }
+
+            if (!is_numeric($price) || $price < 0) {
+                $errors[] = "Row {$row}: invalid price \"{$price}\" for id {$id}.";
+                continue;
+            }
+
+            $product = Product::find($id);
+            if (!$product) {
+                $errors[] = "Row {$row}: no product with id {$id}.";
+                continue;
+            }
+
+            $product->update(['price' => $price]);
+            $updated++;
+        }
+
+        fclose($handle);
+
+        return redirect()->route('admin.products.bulk')
+            ->withsuccess("Updated {$updated} product price(s).")
+            ->with('importErrors', array_slice($errors, 0, 25))
+            ->with('importErrorCount', count($errors));
+    }
+
+    public function edit($id){
+        return Inertia::render('Admin/ProductEdit', [
+            'product' => Product::with('images')->findOrFail($id),
+            'categories' => Category::with('children')->roots()->get(),
+        ]);
+    }
+
+    public function storeImage(Request $request, $id){
+        $product = Product::findOrFail($id);
+
+        Validator::make($request->all(), [
+            'images' => 'required',
+            'images.*' => 'file|image|mimes:jpg,jpeg,png,webp|max:2000',
+        ])->validate();
+
+        $nextOrder = (int) $product->images()->max('sort_order') + 1;
+
+        foreach ($request->file('images') as $file) {
+            $imageName = Str::slug($product->name).'-'.uniqid().'.'.$file->getClientOriginalExtension();
+            $file->storeAs('public/product_images', $imageName);
+
+            ProductImage::create([
+                'product_id' => $product->id,
+                'path' => $imageName,
+                'sort_order' => $nextOrder++,
+            ]);
+        }
+
+        return redirect()->route('admin.products.edit', $product->id)->withsuccess('Image uploaded.');
+    }
+
+    public function destroyImage($imageId){
+        $image = ProductImage::findOrFail($imageId);
+        $productId = $image->product_id;
+
+        $image->delete();
+        $this->deleteFileIfUnused($image->path);
+
+        return redirect()->route('admin.products.edit', $productId)->withsuccess('Image removed.');
+    }
+
+    /**
+     * Seeded products share a placeholder file, so the file is only removed once no
+     * other row still points at it — otherwise deleting one product's image would
+     * blank out every product sharing that path.
+     */
+    private function deleteFileIfUnused($path){
+        if (ProductImage::where('path', $path)->exists()) {
+            return;
+        }
+
+        if (Storage::disk('public')->exists('product_images/'.$path)) {
+            Storage::disk('public')->delete('product_images/'.$path);
+        }
+    }
+
+   public function create(){
+        return Inertia::render('Admin/ProductCreate', [
+            'categories' => Category::with('children')->roots()->get(),
+        ]);
    }
-   public function deleteProduct($id){
-        $product=Product::find($id);
-       $exists=Storage::disk("local")->exists('public/product_images/'.$product->image);
-       //delete that image
-       if($exists){
-           Storage::delete('public/product_images/'.$product->images);
-       }
-       $exists=Storage::disk("local")->exists('public/product_images/'.$product->image1);
-       //delete that image1
-       if($exists){
-           Storage::delete('public/product_images/'.$product->images1);
-       }
-       $exists=Storage::disk("local")->exists('public/product_images/'.$product->image2);
-       //delete that image2
-       if($exists){
-           Storage::delete('public/product_images/'.$product->images2);
-       }
-       $exists=Storage::disk("local")->exists('public/product_images/'.$product->image3);
-       //delete that image3
-       if($exists){
-           Storage::delete('public/product_images/'.$product->images3);
-       }
-        Product::destroy($id);
-     return redirect()->route('adminDisplayProduct');
+   public function destroy($id){
+        $product = Product::with('images')->findOrFail($id);
+        $paths = $product->images->pluck('path');
+
+        $product->delete();
+
+        foreach ($paths as $path) {
+            $this->deleteFileIfUnused($path);
+        }
+        return redirect()->route('admin.products.index')->withsuccess('Product deleted.');
     }
 
-   public function sendCreateProductForm(Request $request){
-       $date=date('Y-m-d H:i:s');
-        $name=$request->input('name');
-        $description=$request->input('description');
-        $price=$request->input('price');
-        $stock=$request->input('stock');
-        $type1=$request->input('type1');
-        $type2=$request->input('type1');
-        $type3=$request->input('type1');
-        $slug=$request->input('slug');
-       $ssdescription= $request->input('sdescription');
-       $datasheet= $request->input('datasheet');
-       $link= $request->input('link');
+   public function store(Request $request){
+        Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer',
+            'category_id' => 'required|exists:categories,id',
+            'images' => 'required',
+            'images.*' => 'file|image|mimes:jpg,jpeg,png,webp|max:2000',
+        ])->validate();
 
-       Validator::make($request->all(),['image'=>"required|file|image|mimes:jpg,png,jpeg|max:2000"])->validate();
-       $ext =$request->file('image')->getClientOriginalExtension();
-       $stringImageReFormat=str_replace(' ','',$request->input('name'));
-       $imageName=$stringImageReFormat.$date.".".$ext;// add extention to the image
-       $imageEncoded=File::get($request->image);
+        $name = $request->input('name');
+        $slug = $request->input('slug') ?: Str::slug($name);
 
-       Storage::disk('local')->put('public/product_images/'.$imageName,$imageEncoded);
-       $newProductArray=array('sdescription'=>$ssdescription,'datasheet'=>$datasheet,'link'=>$link,'Name'=>$name,'description'=>$description,'stock'=>$stock,'price'=>$price,'image'=>$imageName,'type1'=>$type1,'type2'=>$type2,'type3'=>$type3,'slug'=>$slug,'sold'=>0);
-       $created=DB::table('products')->insert($newProductArray);
+        $product = Product::create([
+            'name' => $name,
+            'slug' => $slug,
+            'sku' => $request->input('sku') ?: strtoupper(Str::random(3)).'-'.rand(1000, 9999),
+            'category_id' => $request->input('category_id'),
+            'subcategory' => $request->input('subcategory'),
+            'brand' => $request->input('brand'),
+            'description' => $request->input('description'),
+            'short_description' => $request->input('short_description'),
+            'specifications' => $request->input('specifications'),
+            'video_url' => $request->input('video_url'),
+            'stock' => $request->input('stock'),
+            'sold' => 0,
+            'price' => $request->input('price'),
+        ]);
 
-       if($created){
+        $order = 0;
+        foreach ($request->file('images') as $file) {
+            $imageName = Str::slug($name).'-'.uniqid().'.'.$file->getClientOriginalExtension();
+            $file->storeAs('public/product_images', $imageName);
 
-        return redirect()->route('adminDisplayProduct');
+            ProductImage::create([
+                'product_id' => $product->id,
+                'path' => $imageName,
+                'sort_order' => $order++,
+            ]);
+        }
 
-       }else{
-          return 'new product was not created';
-
-       }
+        return redirect()->route('admin.products.index')->withsuccess('Product created.');
    }
-    public function updateProductImageForm(Request $request,$id){
 
-        Validator::make($request->all(),['image'=>"required|file|image|mimes:jpg,png,jpeg|max:2000"])->validate();
+    public function update(Request $request,$id){
+        $product = Product::findOrFail($id);
 
-        if($request->hasFile("image")){
-           $product=Product::find($id);
-            $exists=$product->image;
-            try {
-                if($exists){
-                    $exists=Storage::disk("local")->exists('public/product_images/'.$product->image);
-                }
-            } catch (Exception $e) {
-                echo 'Caught exception: ',  $e->getMessage(), "\n";
-            }
-            //delete that image
-            if($exists){
-                Storage::delete('public/product_images/'.$product->image1);
-                $imageName=$product->image;
-            }else{
-                $ext =$request->file('image')->getClientOriginalExtension();
-                $stringImageReFormat=str_replace(' ','',$request->input('name'));
-                $imageName=$stringImageReFormat.".".$ext;// add extention to the image
+        Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer',
+            'category_id' => 'required|exists:categories,id',
+        ])->validate();
 
-            }
-            // upload that image
-            //$request->file('image')->getClientOriginalExtension();//return jpg
+        $product->update([
+            'name' => $request->input('name'),
+            'slug' => $request->input('slug') ?: $product->slug,
+            'sku' => $request->input('sku') ?: $product->sku,
+            'category_id' => $request->input('category_id'),
+            'subcategory' => $request->input('subcategory'),
+            'brand' => $request->input('brand'),
+            'description' => $request->input('description'),
+            'short_description' => $request->input('short_description'),
+            'specifications' => $request->input('specifications'),
+            'video_url' => $request->input('video_url'),
+            'stock' => $request->input('stock'),
+            'price' => $request->input('price'),
+        ]);
 
-            $request->image->storeAs("public/product_images/",$imageName);
-            $arrayToUpdate=array('image'=>$imageName);
-            DB::table('products')->where('id',$id)->update($arrayToUpdate);
-            return redirect()->route('adminDisplayProduct');
-        }else{
-           return 'no image was selected';
-        }
-
-    }
-
-
-
-    public function updateProductImageForm1(Request $request,$id){
-
-        Validator::make($request->all(),['image'=>"required|file|image|mimes:jpg,png,jpeg|max:2000"])->validate();
-
-        if($request->hasFile("image")){
-            $product=Product::find($id);
-            $exists=$product->image1;
-            try {
-                if($exists){
-                    $exists=Storage::disk("local")->exists('public/product_images/'.$product->image1);
-                }
-            } catch (Exception $e) {
-                echo 'Caught exception: ',  $e->getMessage(), "\n";
-            }
-            //delete that image
-            if($exists){
-                Storage::delete('public/product_images/'.$product->image1);
-                $imageName=$product->image1;
-            }else{
-                $ext =$request->file('image')->getClientOriginalExtension();
-                $stringImageReFormat=str_replace(' ','1',$request->input('name'));
-                $imageName=$stringImageReFormat.".".$ext;// add extention to the image
-
-            }
-            // upload that image
-            //$request->file('image')->getClientOriginalExtension();//return jpg
-
-            $request->image->storeAs("public/product_images/",$imageName);
-            $arrayToUpdate=array('image'=>$imageName);
-            DB::table('products')->where('id',$id)->update($arrayToUpdate);
-            return redirect()->route('adminDisplayProduct');
-        }else{
-            return 'no image was selected';
-        }
-
-    }
-
-
-    public function updateProductImageForm2(Request $request,$id){
-
-        Validator::make($request->all(),['image'=>"required|file|image|mimes:jpg,png,jpeg|max:2000"])->validate();
-
-        if($request->hasFile("image")){
-            $product=Product::find($id);
-            $exists=$product->image2;
-            try {
-                if($exists){
-                    $exists=Storage::disk("local")->exists('public/product_images/'.$product->image2);
-                }
-            } catch (Exception $e) {
-                echo 'Caught exception: ',  $e->getMessage(), "\n";
-            }
-            //delete that image
-            if($exists){
-                Storage::delete('public/product_images/'.$product->image2);
-                $imageName=$product->image2;
-            }else{
-                $ext =$request->file('image')->getClientOriginalExtension();
-                $stringImageReFormat=str_replace(' ','2',$request->input('name'));
-                $imageName=$stringImageReFormat.".".$ext;// add extention to the image
-
-            }
-            // upload that image
-            //$request->file('image')->getClientOriginalExtension();//return jpg
-
-            $request->image->storeAs("public/product_images/",$imageName);
-            $arrayToUpdate=array('image2'=>$imageName);
-            DB::table('products')->where('id',$id)->update($arrayToUpdate);
-            return redirect()->route('adminDisplayProduct');
-        }else{
-            return 'no image was selected';
-        }
-
-    }
-
-
-    public function updateProductImageForm3(Request $request,$id){
-        Validator::make($request->all(),['image'=>"required|file|image|mimes:jpg,png,jpeg|max:2000"])->validate();
-
-        if($request->hasFile("image")){
-            $product=Product::find($id);
-            $exists=$product->image3;
-            try {
-                if($exists){
-                    $exists=Storage::disk("local")->exists('public/product_images/'.$product->image3);
-                }
-            } catch (Exception $e) {
-                echo 'Caught exception: ',  $e->getMessage(), "\n";
-            }
-            //delete that image
-            if($exists){
-                Storage::delete('public/product_images/'.$product->image3);
-                $imageName=$product->image3;
-            }else{
-                $ext =$request->file('image')->getClientOriginalExtension();
-                $stringImageReFormat=str_replace(' ','3',$request->input('name'));
-                $imageName=$stringImageReFormat.".".$ext;// add extention to the image
-
-            }
-            // upload that image
-            //$request->file('image')->getClientOriginalExtension();//return jpg
-
-            $request->image->storeAs("public/product_images/",$imageName);
-            $arrayToUpdate=array('image3'=>$imageName);
-            DB::table('products')->where('id',$id)->update($arrayToUpdate);
-            return redirect()->route('adminDisplayProduct');
-        }else{
-            return 'no image was selected';
-        }
-
-    }
-
-
-
-
-
-    public function updateProduct(Request $request,$id){
-        $name=$request->input('name');
-        $description=$request->input('description');
-        $price=$request->input('price');
-        $stock=$request->input('stock');
-        $type1=$request->input('type1');
-        $type2=$request->input('type2');
-        $type3= $request->input('type3');
-        $slug= $request->input('slug');
-        $ssdescription= $request->input('sdescription');
-        $datasheet= $request->input('datasheet');
-        $link= $request->input('link');
-
-        $arrayToUpdate=array('Name'=>$name,'description'=>$description,'stock'=>$stock,'price'=>$price,'type1'=>$type1,'type2'=>$type2,'type3'=>$type3,'slug'=>$slug,'sdescription'=>$ssdescription,'datasheet'=>$datasheet,'link'=>$link);
-        DB::table('products')->where('id',$id)->update($arrayToUpdate);
-        return redirect()->route('adminDisplayProduct');
+        return redirect()->route('admin.products.index')->withsuccess('Product updated.');
 
     }
 }

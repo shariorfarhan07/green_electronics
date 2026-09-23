@@ -8,9 +8,6 @@ services:
       - .:/var/www/html
     ports:
       - "8000:8000"
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
     depends_on:
       db:
         condition: service_healthy
