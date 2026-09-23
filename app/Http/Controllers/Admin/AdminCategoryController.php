@@ -6,6 +6,7 @@ use App\Category;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Validator;
 
 class AdminCategoryController extends Controller
@@ -25,7 +26,7 @@ class AdminCategoryController extends Controller
             ->roots()
             ->get();
 
-        return view('admin.categories', [
+        return Inertia::render('Admin/Categories', [
             'sections' => $sections,
             'roots' => $sections,
             'icons' => self::ICONS,

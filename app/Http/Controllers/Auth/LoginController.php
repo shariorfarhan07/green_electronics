@@ -9,6 +9,8 @@ use App\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
@@ -41,6 +43,14 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    /** Overrides AuthenticatesUsers::showLoginForm(), which renders a Blade view. */
+    public function showLoginForm()
+    {
+        return Inertia::render('Auth/Login', [
+            'canResetPassword' => Route::has('password.request'),
+        ]);
     }
 
 

@@ -7,6 +7,7 @@ use App\Order;
 use App\Orders_Items;
 use App\Product;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Validator;
 
 class AdminOrderController extends Controller
@@ -20,30 +21,30 @@ class AdminOrderController extends Controller
     ];
 
     public function index(){
-        $products = Order::orderBy('date', 'desc')->paginate(20);
-        return view("admin.order",['products'=>$products ]);
+        return Inertia::render('Admin/Orders', [
+            'orders' => Order::orderBy('date', 'desc')->paginate(20),
+        ]);
     }
 
     public function show($id){
-        $products = Orders_Items::where('order_id', $id)->get();
-        $customer = Order::findOrFail($id);
+        $items = Orders_Items::where('order_id', $id)->get();
 
-        return view("admin.invoice",[
-            'products' => $products,
-            'customer' => $customer,
-            'images' => Product::imagesForOrderItems($products),
+        return Inertia::render('Admin/Invoice', [
+            'order' => Order::findOrFail($id),
+            'items' => $items,
+            'images' => Product::imageUrlsForOrderItems($items),
         ]);
     }
 
     public function edit($id){
         $order = Order::findOrFail($id);
         $items = Orders_Items::where('order_id', $id)->get();
-        $products = Product::orderBy('name')->get();
-        return view('admin.editOrderForm', [
+
+        return Inertia::render('Admin/OrderEdit', [
             'order' => $order,
             'items' => $items,
-            'images' => Product::imagesForOrderItems($items),
-            'products' => $products,
+            'images' => Product::imageUrlsForOrderItems($items),
+            'products' => Product::orderBy('name')->get(['id', 'name', 'price']),
             'statuses' => self::STATUSES,
         ]);
     }

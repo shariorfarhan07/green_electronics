@@ -8,6 +8,7 @@ use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class HomeController extends Controller
 {
@@ -39,10 +40,10 @@ class HomeController extends Controller
             ->get()
             ->groupBy('order_id');
 
-        return view('home', [
+        return Inertia::render('Account/Dashboard', [
             'recentOrders' => $recentOrders,
             'orderItems' => $orderItems,
-            'images' => Product::imagesForOrderItems($orderItems->flatten()),
+            'images' => Product::imageUrlsForOrderItems($orderItems->flatten()),
             'orderCount' => Order::where('user_id', $userId)->count(),
             'wishlistCount' => DB::table('wishlist')->where('user_id', $userId)->count(),
         ]);

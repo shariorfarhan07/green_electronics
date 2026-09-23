@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\ContactMessage;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ContactController extends Controller
 {
     public function show()
     {
-        return view('contact');
+        return Inertia::render('Contact');
     }
 
     public function store(Request $request)

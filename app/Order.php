@@ -15,6 +15,9 @@ class Order extends Model
         'address', 'city', 'division', 'zip', 'phone', 'shipping', 'paid', 'discount', 'date',
     ];
 
+    /** Serialized into every Inertia page prop that carries an order. */
+    protected $appends = ['grand_total'];
+
     public function user()
     {
         return $this->belongsTo(User::class);

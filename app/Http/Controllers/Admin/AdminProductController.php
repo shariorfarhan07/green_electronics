@@ -9,6 +9,7 @@ use App\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Validator;
 
 
@@ -17,13 +18,13 @@ class AdminProductController extends Controller
 {
     //
     public function index(){
-        $products = Product::with(['category', 'images'])->orderBy('created_at', 'desc')->paginate(10);
-        return view("admin.AdmindisplayProducts",['products'=>$products ]);
-
+        return Inertia::render('Admin/Products', [
+            'products' => Product::with(['category', 'images'])->orderBy('created_at', 'desc')->paginate(10),
+        ]);
     }
 
     public function bulkForm(){
-        return view('admin.productsBulk');
+        return Inertia::render('Admin/ProductsBulk');
     }
 
     /**
@@ -119,9 +120,10 @@ class AdminProductController extends Controller
     }
 
     public function edit($id){
-        $product = Product::with('images')->findOrFail($id);
-        $categories = Category::with('children')->roots()->get();
-        return view('admin.editProductForm', ['product' => $product, 'categories' => $categories]);
+        return Inertia::render('Admin/ProductEdit', [
+            'product' => Product::with('images')->findOrFail($id),
+            'categories' => Category::with('children')->roots()->get(),
+        ]);
     }
 
     public function storeImage(Request $request, $id){
@@ -174,8 +176,9 @@ class AdminProductController extends Controller
     }
 
    public function create(){
-        $categories = Category::with('children')->roots()->get();
-        return view('admin.createProductForm', ['categories' => $categories]);
+        return Inertia::render('Admin/ProductCreate', [
+            'categories' => Category::with('children')->roots()->get(),
+        ]);
    }
    public function destroy($id){
         $product = Product::with('images')->findOrFail($id);

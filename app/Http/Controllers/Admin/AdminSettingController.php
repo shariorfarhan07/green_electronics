@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Setting;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class AdminSettingController extends Controller
 {
@@ -12,7 +13,7 @@ class AdminSettingController extends Controller
 
     public function edit()
     {
-        return view('admin.settings', [
+        return Inertia::render('Admin/Settings', [
             'ordersDisabled' => Setting::bool(self::ORDERS_DISABLED_KEY),
         ]);
     }

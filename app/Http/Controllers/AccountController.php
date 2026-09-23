@@ -6,6 +6,7 @@ use App\Order;
 use App\Orders_Items;
 use App\Product;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class AccountController extends Controller
 {
@@ -20,7 +21,7 @@ class AccountController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('account.orders', ['orders' => $orders]);
+        return Inertia::render('Account/Orders', ['orders' => $orders]);
     }
 
     public function show($id)
@@ -29,10 +30,13 @@ class AccountController extends Controller
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
         $items = Orders_Items::where('order_id', $order->id)->get();
 
-        return view('account.orderDetail', [
+        return Inertia::render('Account/OrderDetail', [
             'order' => $order,
             'items' => $items,
-            'images' => Product::imagesForOrderItems($items),
+            'images' => Product::imageUrlsForOrderItems($items),
+            'timeline' => Order::TIMELINE,
+            'stage' => $order->timelineStage(),
+            'isCancelled' => $order->isCancelled(),
         ]);
     }
 }

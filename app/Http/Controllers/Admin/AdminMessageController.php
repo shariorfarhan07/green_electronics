@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\ContactMessage;
 use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 
 class AdminMessageController extends Controller
 {
@@ -11,7 +12,7 @@ class AdminMessageController extends Controller
     {
         $messages = ContactMessage::orderBy('created_at', 'desc')->paginate(20);
 
-        return view('admin.messages', [
+        return Inertia::render('Admin/Messages', [
             'messages' => $messages,
             'unreadCount' => ContactMessage::unread()->count(),
         ]);
@@ -28,7 +29,7 @@ class AdminMessageController extends Controller
             $message->save();
         }
 
-        return view('admin.messageDetail', ['message' => $message]);
+        return Inertia::render('Admin/MessageDetail', ['message' => $message]);
     }
 
     public function destroy($id)

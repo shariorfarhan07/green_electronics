@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use Inertia\Inertia;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,12 +17,12 @@ use App\Http\Controllers\Auth\LoginController;
 Route::get('/', ["uses"=>"ProductsController@index","as"=>'homepage']);
 
 Route::get('about', function () {
-    return view('about');
+    return Inertia::render('About');
 })->name('about');
 Route::get('contact', ['uses' => 'ContactController@show', 'as' => 'contact']);
 Route::post('contact', ['uses' => 'ContactController@store', 'as' => 'contact.store']);
 Route::get('coming-soon', function () {
-    return view('comingsoon');
+    return Inertia::render('ComingSoon');
 })->name('coming-soon');
 
 // product browsing (listing, category filter and free-text search all share one action)

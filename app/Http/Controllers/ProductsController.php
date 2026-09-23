@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Inertia\Inertia;
 class ProductsController extends Controller
 
 {
@@ -34,7 +35,15 @@ class ProductsController extends Controller
       $products4 = Product::with(['images', 'category'])->orderBy('id', 'desc')->take(12)->get();
       $products5 = Product::with(['images', 'category'])->orderBy('sold', 'desc')->take(12)->get();
 
-      return view("index")->with('products1',$products1)->with('products2',$products2)->with('products3',$products3)->with('products4',$products4)->with('products5',$products5);
+      return Inertia::render('Home', [
+          'rails' => [
+              ['title' => 'Arduino', 'slug' => 'arduino', 'items' => $products1],
+              ['title' => 'Robotics', 'slug' => 'robotics', 'items' => $products2],
+              ['title' => 'Sensors', 'slug' => 'sensor', 'items' => $products3],
+          ],
+          'newArrivals' => $products4,
+          'bestSellers' => $products5,
+      ]);
   }
 
 public function checkoutIndex(){
@@ -42,10 +51,12 @@ public function checkoutIndex(){
     if(!$cart || count($cart->items) === 0){
         return redirect()->route('homepage');
     }
-    if (Setting::bool('orders_disabled')) {
-        return view('orderClosed');
-    }
-    return view('orderForm');
+
+    // The orders-disabled variant is a branch inside the Checkout page component
+    // now (it reads the globally shared `ordersDisabled` prop), not its own view.
+    return Inertia::render('Checkout', [
+        'cartItems' => $cart,
+    ]);
 }
 
 
@@ -145,14 +156,20 @@ public function checkoutIndex(){
 
       $products = $query->paginate(12)->withQueryString();
 
-      return view("shop", compact("products", "activeCategory"));
+      return Inertia::render('Shop', [
+          'products' => $products,
+          'activeCategory' => $activeCategory,
+          'searchText' => $searchText,
+          'filters' => $request->only(['category', 'searchText']),
+      ]);
   }
 
   public function productView(Request $request,$id){
       $product = Product::with(['images', 'category'])->findOrFail($id);
-      return view("product",compact("product"));
 
-
+      return Inertia::render('Product', [
+          'product' => $product,
+      ]);
   }
   public function addToWishlist(Request $request,$id){
       $userId = Auth::id();
@@ -174,14 +191,11 @@ public function checkoutIndex(){
   }
   public function wishlistIndex(){
       $userId = Auth::id();
-      $exist=DB::table('wishlist')->where('user_id', $userId)->exists();
-      if($exist){
-          $productIds = DB::table('wishlist')->where('user_id', $userId)->pluck('product_id');
-          $products = Product::with('images')->whereIn('id', $productIds)->get();
+      $productIds = DB::table('wishlist')->where('user_id', $userId)->pluck('product_id');
 
-          return view('wishlist')->with('products',$products);
-      }
-      return redirect()->route('homepage');
+      return Inertia::render('Wishlist', [
+          'products' => Product::with('images')->whereIn('id', $productIds)->get(),
+      ]);
   }
 
 
@@ -192,29 +206,27 @@ public function checkoutIndex(){
       $product=Product::find($id);
       $cart->addItem($id, $product);
       $request->session()->put('cart',$cart);
-      //dump($cart);
-      return redirect()-> route('homepage');
+
+      // back() rather than a fixed route: the cart can be added to from the
+      // home rails, the shop grid, a product page or the wishlist, and an
+      // Inertia visit should land the customer back where they were.
+      return redirect()->back();
   }
   public function cartIndex(){
       $cart=Session::get('cart');
-      // cart is not empty
-      if($cart){
-          return view('cartproducts',['cartItems'=>$cart]);
-         //dump($cart);
-       //cart is empty
-      }else{
-       return redirect()->route("homepage");
+      if(!$cart || count($cart->items) === 0){
+          return redirect()->route('homepage');
       }
 
+      return Inertia::render('Cart', ['cartItems' => $cart]);
   }
   public function updateCartQuantity(Request $request,$id,$number){
       $prevCart=$request-> session()->get('cart');
       $cart=new Cart($prevCart);
       $cart->removeFromCart($id,$number);
       $request->session()->put('cart',$cart);
-      //dump($cart);
-      return redirect()-> route('cart.index');
 
+      return redirect()->back();
   }
 
 

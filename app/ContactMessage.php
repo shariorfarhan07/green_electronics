@@ -13,6 +13,14 @@ class ContactMessage extends Model
 
     protected $casts = ['read_at' => 'datetime'];
 
+    /** Serialized for the Inertia admin inbox, which can't call isUnread(). */
+    protected $appends = ['is_unread'];
+
+    public function getIsUnreadAttribute()
+    {
+        return $this->isUnread();
+    }
+
     public function scopeUnread($query)
     {
         return $query->whereNull('read_at');
