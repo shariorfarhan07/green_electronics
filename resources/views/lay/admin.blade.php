@@ -30,6 +30,9 @@
             <a href="{{ route('admin.categories.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.categories.index') ? 'is-active' : '' }}">
                 <x-icon name="filter" :size="17" /> Categories
             </a>
+            <a href="{{ route('admin.products.bulk') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.products.bulk') ? 'is-active' : '' }}">
+                <x-icon name="printer" :size="17" /> Bulk Products
+            </a>
             <div class="wb-admin__nav-group-title">Sales</div>
             <a href="{{ route('admin.orders.index') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.orders.*') ? 'is-active' : '' }}">
                 <x-icon name="box" :size="17" /> Orders
@@ -40,6 +43,10 @@
                 @if(($unreadMessages ?? 0) > 0)
                     <span class="wb-admin__nav-count">{{ $unreadMessages }}</span>
                 @endif
+            </a>
+            <div class="wb-admin__nav-group-title">Store</div>
+            <a href="{{ route('admin.settings.edit') }}" class="wb-admin__nav-link {{ request()->routeIs('admin.settings.*') ? 'is-active' : '' }}">
+                <x-icon name="wrench" :size="17" /> Settings
             </a>
         </nav>
         <div class="wb-admin__sidebar-foot">

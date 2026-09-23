@@ -85,7 +85,7 @@
             border: 1px solid var(--line); background: var(--paper-alt); overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
-        .invoice-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+        .invoice-thumb img { width: 100%; height: 100%; object-fit: contain; }
 
         .invoice-totals { margin-left: auto; width: 280px; }
         .invoice-totals .row { display: flex; justify-content: space-between; padding: 7px 0; font-size: .88rem; color: var(--ink-soft); }

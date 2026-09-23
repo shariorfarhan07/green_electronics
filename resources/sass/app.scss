@@ -92,10 +92,28 @@ a:hover { color: var(--accent-dark); }
   &:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 }
 .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
-.page-link { color: var(--ink); border: none; border-radius: var(--radius-full); margin: 0 2px; font-weight: 500; }
-.page-item.active .page-link { background: var(--ink); color: #fff; }
-.pagination { gap: .1rem; }
 .table { font-size: .92rem; }
+
+// ---- Pagination (resources/views/pagination/custom.blade.php) ----------
+// Laravel's built-in pagination views only look right with Tailwind/Bootstrap-4's
+// own CSS loaded, which this app ships neither of — see Paginator::defaultView.
+.wb-pagination {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 1rem; margin-top: 1.5rem;
+}
+.wb-pagination__meta { font-size: .84rem; color: var(--ink-soft); strong { color: var(--ink); font-weight: 700; } }
+.wb-pagination__list {
+  display: flex; align-items: center; gap: .3rem; list-style: none; margin: 0; padding: 0; flex-wrap: wrap;
+}
+.wb-pagination__item {
+  display: flex; align-items: center; justify-content: center; min-width: 38px; height: 38px;
+  padding: 0 .5rem; border-radius: var(--radius-sm); border: 1px solid var(--line);
+  color: var(--ink-soft); font-size: .87rem; font-weight: 600; background: #fff;
+}
+a.wb-pagination__item:hover { border-color: var(--line-strong); color: var(--ink); background: var(--paper-alt); }
+.wb-pagination__item--current { background: var(--ink); border-color: var(--ink); color: #fff; }
+.wb-pagination__item--disabled { color: var(--ink-faint); background: var(--paper-alt); cursor: not-allowed; }
+.wb-pagination__item--ellipsis { border-color: transparent; background: none; color: var(--ink-faint); cursor: default; }
 .alert-success { background: var(--success-soft); border-color: var(--success); color: var(--accent-dark); border-radius: var(--radius-sm); }
 
 // ------------------------------------------------------------
@@ -104,6 +122,10 @@ a:hover { color: var(--accent-dark); }
 .wb-topbar {
   background: var(--ink); color: rgba(255,255,255,.85); font-size: .8rem;
   padding: .5rem 0; text-align: center; font-weight: 500;
+}
+.wb-topbar--notice {
+  background: var(--accent-dark); color: #fff; display: block;
+  a { color: #fff; text-decoration: underline; font-weight: 700; }
 }
 .wb-header {
   background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 200;
@@ -254,10 +276,28 @@ a:hover { color: var(--accent-dark); }
 .brd-separetor { margin: 0 .5rem; color: var(--line-strong); }
 
 // ------------------------------------------------------------
-// Category chip strip (home)
+// Category chip strip (home) — auto-scrolling marquee.
+// The track renders the category list twice back to back (see index.blade.php)
+// and animates exactly -50%, so the moment the first copy scrolls fully out of
+// view the second copy is in the identical position: a seamless, gapless loop.
 // ------------------------------------------------------------
-.wb-cat-strip { display: flex; gap: .7rem; overflow-x: auto; padding: .25rem 0 1.25rem; scrollbar-width: none; }
-.wb-cat-strip::-webkit-scrollbar { display: none; }
+.wb-cat-strip { overflow: hidden; padding: .25rem 0 1.25rem; -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
+.wb-cat-track {
+  display: flex; gap: .7rem; width: max-content;
+  animation: wb-cat-marquee 48s linear infinite;
+}
+// Pausing on hover/focus lets people actually click a chip instead of chasing
+// a moving target; touch devices get the same via :active since they have no hover.
+.wb-cat-strip:hover .wb-cat-track,
+.wb-cat-strip:active .wb-cat-track,
+.wb-cat-track:has(:focus-visible) { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .wb-cat-track { animation: none; }
+}
+@keyframes wb-cat-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
 .wb-cat-chip {
   flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: .55rem; width: 104px;
   padding: 1.1rem .6rem; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink);
@@ -272,13 +312,25 @@ a:hover { color: var(--accent-dark); }
 // ------------------------------------------------------------
 .wb-hero {
   background: var(--paper-alt); border-radius: 20px; overflow: hidden; position: relative; margin-top: 1.5rem;
+  display: flex; flex-direction: column;
 }
 .wb-hero__inner { padding: 3rem 1.75rem; max-width: 620px; }
 .wb-hero__eyebrow { color: var(--accent); text-transform: uppercase; font-size: .78rem; letter-spacing: .06em; margin-bottom: .8rem; display: block; font-weight: 700; }
 .wb-hero__title { color: var(--ink); font-size: 1.9rem; line-height: 1.18; margin-bottom: 1rem; }
 .wb-hero__title span { color: var(--accent); }
 .wb-hero__sub { color: var(--ink-soft); margin-bottom: 1.75rem; max-width: 460px; }
+.wb-hero__media { width: 100%; aspect-ratio: 16 / 10; overflow: hidden; position: relative; }
+.wb-hero__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @media (min-width: 768px) { .wb-hero__inner { padding: 4.5rem 3.5rem; } .wb-hero__title { font-size: 2.75rem; } }
+@media (min-width: 992px) {
+  .wb-hero { flex-direction: row; align-items: stretch; }
+  .wb-hero__inner { flex: 0 0 48%; max-width: none; display: flex; flex-direction: column; justify-content: center; }
+  .wb-hero__media { flex: 1; aspect-ratio: auto; }
+  .wb-hero__media::before {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(90deg, var(--paper-alt) 0%, transparent 14%);
+  }
+}
 
 // ------------------------------------------------------------
 // Section headers
@@ -303,7 +355,7 @@ a:hover { color: var(--accent-dark); }
   &:hover { box-shadow: var(--shadow-md); border-color: var(--line-strong); }
 }
 .wb-card__media { position: relative; aspect-ratio: 1 / 1; background: var(--paper-alt); display: block; overflow: hidden; }
-.wb-card__media img { width: 100%; height: 100%; object-fit: contain; padding: 16px; }
+.wb-card__media img { width: 100%; height: 100%; object-fit: contain; }
 .wb-card__badge {
   position: absolute; top: 10px; left: 10px; background: #fff; color: var(--ink); border: 1px solid var(--line);
   font-size: .66rem; font-weight: 600; padding: .25rem .6rem; border-radius: var(--radius-full);
@@ -355,6 +407,12 @@ a:hover { color: var(--accent-dark); }
 .wb-empty-state { text-align: center; padding: 4rem 1rem; color: var(--ink-soft); }
 .wb-empty-state .wb-icon { color: var(--line-strong); margin-bottom: 1rem; }
 
+.wb-order-closed__icon {
+  width: 64px; height: 64px; margin: 0 auto; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent-dark);
+  display: flex; align-items: center; justify-content: center;
+}
+
 // ------------------------------------------------------------
 // Product detail
 // ------------------------------------------------------------
@@ -364,12 +422,12 @@ a:hover { color: var(--accent-dark); }
 .wb-pd__thumbs { display: flex; gap: .6rem; flex-direction: row; }
 @media (min-width: 576px) { .wb-pd__thumbs { flex-direction: column; } }
 .wb-pd__thumb {
-  width: 64px; height: 64px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; cursor: pointer; background: #fff; padding: 4px;
+  width: 64px; height: 64px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; cursor: pointer; background: #fff;
   &.is-active, &:hover { border-color: var(--ink); }
   img { width: 100%; height: 100%; object-fit: contain; }
 }
 .wb-pd__main { flex: 1; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-alt); aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.wb-pd__main img { max-width: 85%; max-height: 85%; object-fit: contain; }
+.wb-pd__main img { max-width: 96%; max-height: 96%; object-fit: contain; }
 .wb-pd__cat { font-size: .78rem; text-transform: uppercase; color: var(--accent); letter-spacing: .03em; font-weight: 700; }
 .wb-pd__title { font-size: 1.55rem; margin: .5rem 0 .9rem; }
 .wb-pd__meta { display: flex; gap: 1.2rem; font-size: .84rem; color: var(--ink-soft); margin-bottom: 1.1rem; }
@@ -404,7 +462,7 @@ a:hover { color: var(--accent-dark); }
 .wb-line-table td { padding: 1rem 1.1rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .wb-line-table tr:last-child td { border-bottom: none; }
 .wb-line__thumb { width: 64px; height: 64px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--paper-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.wb-line__thumb img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.wb-line__thumb img { width: 100%; height: 100%; object-fit: contain; }
 .wb-line__name { font-weight: 600; color: var(--ink); }
 .wb-line__price { font-weight: 500; }
 .wb-line__remove { color: var(--ink-faint); }
@@ -458,7 +516,7 @@ a:hover { color: var(--accent-dark); }
   width: 52px; height: 52px; flex-shrink: 0; border-radius: var(--radius-sm);
   border: 1px solid var(--line); background: var(--paper-alt); overflow: hidden;
   display: flex; align-items: center; justify-content: center; color: var(--ink-faint);
-  img { width: 100%; height: 100%; object-fit: contain; padding: 5px; }
+  img { width: 100%; height: 100%; object-fit: contain; }
 }
 
 @media (max-width: 575px) {
@@ -466,10 +524,67 @@ a:hover { color: var(--accent-dark); }
   .wb-order-card__right { margin-left: 0; width: 100%; }
 }
 
-.wb-checkout-items { display: flex; flex-direction: column; gap: .85rem; max-height: 320px; overflow-y: auto; }
+.wb-account-grid { display: flex; flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+@media (min-width: 992px) {
+  .wb-account-grid { display: grid; grid-template-columns: 280px 1fr; gap: 2rem; }
+  .wb-account-side { position: sticky; top: 96px; }
+}
+
+.wb-account-side { width: 100%; display: flex; flex-direction: column; gap: 1.25rem; }
+
+.wb-account-profile {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 1.5rem; text-align: center;
+}
+.wb-account-avatar {
+  width: 64px; height: 64px; margin: 0 auto .9rem; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent-dark); font-weight: 800; font-size: 1.4rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.wb-account-profile__name { font-weight: 700; font-size: 1.05rem; }
+.wb-account-profile__email { font-size: .82rem; color: var(--ink-faint); margin-top: .2rem; word-break: break-word; }
+
+.wb-account-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem;
+}
+.wb-account-stat { text-align: center; }
+.wb-account-stat + .wb-account-stat { border-left: 1px solid var(--line); }
+.wb-account-stat__num { font-weight: 800; font-size: 1.35rem; color: var(--ink); line-height: 1.2; }
+.wb-account-stat__label { font-size: .74rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .03em; margin-top: .15rem; }
+
+.wb-account-nav {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: .5rem; display: flex; flex-direction: column;
+}
+.wb-account-nav__link {
+  display: flex; align-items: center; gap: .7rem; padding: .7rem .85rem; border-radius: var(--radius-sm);
+  color: var(--ink-soft); font-weight: 500; font-size: .89rem;
+  .wb-icon { color: var(--ink-faint); flex-shrink: 0; }
+}
+.wb-account-nav__link:hover { background: var(--paper-alt); color: var(--ink); }
+.wb-account-nav__link.is-active { background: var(--accent-soft); color: var(--accent-dark); font-weight: 600; }
+.wb-account-nav__link.is-active .wb-icon { color: var(--accent); }
+
+.wb-account-main { width: 100%; min-width: 0; }
+.wb-account-welcome {
+  background: linear-gradient(135deg, var(--ink) 0%, #1c1d21 100%); color: #fff;
+  border-radius: var(--radius); padding: 1.5rem 1.6rem; margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.wb-account-welcome h3 { color: #fff; margin: 0 0 .3rem; font-size: 1.2rem; }
+.wb-account-welcome p { margin: 0; color: rgba(255,255,255,.7); font-size: .87rem; }
+
+// overflow-y:auto forces the other axis to clip too (per spec, "visible" can't pair
+// with a non-visible axis), which cut off the qty badge poking past the thumb's
+// corner — the padding/negative-margin pair gives it room without shifting the box.
+.wb-checkout-items {
+  display: flex; flex-direction: column; gap: .85rem; max-height: 320px; overflow-y: auto;
+  padding-top: 10px; padding-right: 10px; margin-top: -10px; margin-right: -10px;
+}
 .wb-checkout-items__row { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: .75rem; }
 .wb-checkout-items__thumb { position: relative; width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--paper-alt); border: 1px solid var(--line); }
-.wb-checkout-items__thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.wb-checkout-items__thumb img { width: 100%; height: 100%; object-fit: contain; }
 .wb-checkout-items__qty { position: absolute; top: -8px; right: -8px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 50%; background: var(--ink); color: #fff; font-size: .68rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .wb-checkout-items__name { font-size: .85rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
 .wb-checkout-items__price { font-size: .85rem; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
@@ -588,7 +703,7 @@ a:hover { color: var(--accent-dark); }
 .wb-admin__table td { padding: .85rem 1.4rem; border-bottom: 1px solid var(--line); vertical-align: middle; font-size: .87rem; }
 .wb-admin__table tr:last-child td { border-bottom: none; }
 .wb-admin__table tbody tr:hover td { background: var(--paper-alt); }
-.wb-admin__thumb { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 1px solid var(--line); object-fit: contain; background: var(--paper-alt); padding: 3px; }
+.wb-admin__thumb { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 1px solid var(--line); object-fit: contain; background: var(--paper-alt); }
 .wb-admin__form { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.75rem; max-width: 760px; }
 @media (min-width: 768px) { .wb-admin__form { padding: 2.25rem; } }
 .wb-admin__form .form-group label { font-weight: 600; font-size: .85rem; margin-bottom: .4rem; display: block; }
@@ -616,6 +731,34 @@ a:hover { color: var(--accent-dark); }
 .wb-admin__req { color: var(--danger); font-weight: 700; margin-left: .15rem; }
 .wb-admin__hint { display: block; margin-top: .3rem; font-size: .76rem; color: var(--ink-faint); line-height: 1.45; }
 
+// ---- Toggle switch (settings on/off) ------------------------------------
+.wb-switch-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem;
+  padding: 1.1rem 0; border-bottom: 1px solid var(--line);
+  &:last-child { border-bottom: none; padding-bottom: 0; }
+  &:first-child { padding-top: 0; }
+}
+.wb-switch-row__label { font-weight: 700; font-size: .95rem; }
+.wb-switch-row__hint { margin: .3rem 0 0; font-size: .84rem; color: var(--ink-soft); line-height: 1.55; max-width: 480px; }
+.wb-switch {
+  position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0;
+  input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+}
+.wb-switch__track {
+  // Sits visually on top of the (invisible) checkbox input, so without this it
+  // swallows the click instead of letting it reach the input underneath.
+  position: absolute; inset: 0; background: var(--line-strong); border-radius: var(--radius-full);
+  transition: background .15s ease; pointer-events: none;
+  &::before {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+    background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    transition: transform .15s ease;
+  }
+}
+.wb-switch input:checked + .wb-switch__track { background: var(--accent); }
+.wb-switch input:checked + .wb-switch__track::before { transform: translateX(20px); }
+.wb-switch input:focus-visible + .wb-switch__track { box-shadow: 0 0 0 3px var(--accent-soft); }
+
 .wb-admin__form-actions {
   position: sticky; bottom: 0; z-index: 5;
   display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
@@ -642,7 +785,11 @@ select.form-control {
   appearance: none; -webkit-appearance: none; padding-right: 2.4rem;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b5e66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right .8rem center;
-  cursor: pointer; text-overflow: ellipsis;
+  cursor: pointer;
+  // `text-overflow: ellipsis` on a native, appearance:none select is a known Chromium
+  // quirk: its internal text-layout box doesn't match our custom padding, so the browser
+  // decides the label overflows and paints just the ellipsis dots instead of the text
+  // (reproduced even when the full word fits, e.g. "Arduino" in a 200px select).
   &:hover { border-color: var(--line-strong); }
 }
 // Native dropdown lists inherit almost nothing, but sizing the options keeps the
@@ -696,7 +843,7 @@ select.form-control optgroup { font-weight: 700; color: var(--ink-faint); font-s
 .wb-admin__current-image img { width: 96px; height: 96px; object-fit: contain; background: #fff; border-radius: var(--radius-sm); border: 1px solid var(--line); }
 .wb-admin__image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.75rem; }
 .wb-admin__image-tile { position: relative; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--paper-alt); aspect-ratio: 1/1; }
-.wb-admin__image-tile img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.wb-admin__image-tile img { width: 100%; height: 100%; object-fit: contain; }
 .wb-admin__image-tile .wb-admin__image-remove { position: absolute; top: 6px; right: 6px; }
 .wb-admin__image-tile .wb-admin__image-primary { position: absolute; top: 6px; left: 6px; }
 // Keeps a long free-text cell (order addresses) from ballooning row height and
@@ -711,7 +858,12 @@ select.form-control optgroup { font-weight: 700; color: var(--ink-faint); font-s
 .wb-admin__cat-section { border-bottom: 1px solid var(--line); padding: .9rem 1.25rem; }
 .wb-admin__cat-section:last-child { border-bottom: none; }
 .wb-admin__cat-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-.wb-admin__cat-head .form-control { height: 34px; font-size: .85rem; }
+// A fixed height on a native <select> only works if padding+line-height are cut to
+// match — the base `.form-control` padding (.65rem .9rem) needs ~42px to sit inside,
+// so leaving it in place while forcing height:34px starved the text of vertical room.
+// Chromium's native select paints just the ellipsis in that state instead of clipping,
+// which is what made every "Section" dropdown here render as invisible dots.
+.wb-admin__cat-head .form-control { height: 34px; font-size: .85rem; padding-top: .2rem; padding-bottom: .2rem; }
 .wb-admin__cat-icon {
   width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -719,11 +871,17 @@ select.form-control optgroup { font-weight: 700; color: var(--ink-faint); font-s
 .wb-admin__cat-name { max-width: 210px; font-weight: 600; }
 .wb-admin__cat-children { margin: .6rem 0 0 46px; border-left: 2px solid var(--line); padding-left: 1rem; }
 .wb-admin__cat-child { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; padding: .28rem 0; }
-.wb-admin__cat-child .form-control { height: 30px; font-size: .82rem; max-width: 220px; }
+.wb-admin__cat-child .form-control { height: 30px; font-size: .82rem; max-width: 220px; padding-top: .15rem; padding-bottom: .15rem; }
 
 .wb-admin__dropzone { border: 2px dashed var(--line-strong); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--ink-soft); cursor: pointer; transition: border-color .15s, background .15s; }
 .wb-admin__dropzone:hover, .wb-admin__dropzone.is-dragover { border-color: var(--accent); background: var(--accent-soft); }
 .wb-admin__dropzone input[type="file"] { margin-top: 1rem; }
+.wb-admin__dropzone-selected {
+  display: flex; align-items: center; justify-content: center; gap: .6rem;
+  color: var(--accent-dark); font-weight: 600;
+  span { word-break: break-all; }
+  .wb-admin__icon-btn { flex-shrink: 0; }
+}
 
 // ------------------------------------------------------------
 // Utility / misc

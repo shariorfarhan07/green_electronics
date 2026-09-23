@@ -65,6 +65,9 @@ Route::prefix('admin')->middleware('restictToAdmin')->group(function () {
     Route::delete('orders/{id}/items/{itemId}', ['uses' => 'Admin\AdminOrderController@removeItem', 'as' => 'admin.orders.items.destroy']);
 
     Route::get('products', ['uses' => 'Admin\AdminProductController@index', 'as' => 'admin.products.index']);
+    Route::get('products/bulk', ['uses' => 'Admin\AdminProductController@bulkForm', 'as' => 'admin.products.bulk']);
+    Route::get('products/export', ['uses' => 'Admin\AdminProductController@export', 'as' => 'admin.products.export']);
+    Route::post('products/import', ['uses' => 'Admin\AdminProductController@import', 'as' => 'admin.products.import']);
     Route::get('products/create', ['uses' => 'Admin\AdminProductController@create', 'as' => 'admin.products.create']);
     Route::post('products', ['uses' => 'Admin\AdminProductController@store', 'as' => 'admin.products.store']);
     Route::get('products/{id}/edit', ['uses' => 'Admin\AdminProductController@edit', 'as' => 'admin.products.edit']);
@@ -86,4 +89,8 @@ Route::prefix('admin')->middleware('restictToAdmin')->group(function () {
     Route::post('categories', ['uses' => 'Admin\AdminCategoryController@store', 'as' => 'admin.categories.store']);
     Route::put('categories/{id}', ['uses' => 'Admin\AdminCategoryController@update', 'as' => 'admin.categories.update']);
     Route::delete('categories/{id}', ['uses' => 'Admin\AdminCategoryController@destroy', 'as' => 'admin.categories.destroy']);
+
+    // store-wide settings (e.g. contact-only ordering)
+    Route::get('settings', ['uses' => 'Admin\AdminSettingController@edit', 'as' => 'admin.settings.edit']);
+    Route::put('settings', ['uses' => 'Admin\AdminSettingController@update', 'as' => 'admin.settings.update']);
 });

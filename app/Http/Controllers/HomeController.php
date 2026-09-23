@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Order;
+use App\Orders_Items;
+use App\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -17,12 +22,29 @@ class HomeController extends Controller
     }
 
     /**
-     * Show the application dashboard.
+     * Show the account dashboard: profile, quick stats and recent orders.
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
     public function index()
     {
-        return view('home');
+        $userId = Auth::id();
+
+        $recentOrders = Order::where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $orderItems = Orders_Items::whereIn('order_id', $recentOrders->pluck('id'))
+            ->get()
+            ->groupBy('order_id');
+
+        return view('home', [
+            'recentOrders' => $recentOrders,
+            'orderItems' => $orderItems,
+            'images' => Product::imagesForOrderItems($orderItems->flatten()),
+            'orderCount' => Order::where('user_id', $userId)->count(),
+            'wishlistCount' => DB::table('wishlist')->where('user_id', $userId)->count(),
+        ]);
     }
 }

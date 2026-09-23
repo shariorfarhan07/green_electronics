@@ -10,15 +10,31 @@
             <p class="wb-hero__sub">Genuine development boards, sensors, robotics parts and 3D printing supplies &mdash; shipped nationwide with cash on delivery.</p>
             <a href="{{ route('shop') }}" class="wb-btn wb-btn--accent">Shop All Products <x-icon name="chevron-right" :size="16" /></a>
         </div>
+        <div class="wb-hero__media">
+            {{-- Served as WebP (~110KB) with a JPEG fallback (~145KB) instead of the
+                 original 2.1MB PNG — see public/images/hero for the source. --}}
+            <picture>
+                <source srcset="{{ asset('images/hero/build-innovate.webp') }}" type="image/webp">
+                <img src="{{ asset('images/hero/build-innovate.jpg') }}" width="1200" height="676"
+                     alt="Engineer sketching a robotics blueprint at a workbench full of development boards, sensors and motors"
+                     fetchpriority="high">
+            </picture>
+        </div>
     </div>
 
     <div class="wb-cat-strip">
-        @foreach($navCategories ?? [] as $cat)
-            <a href="{{ route('shop', ['category' => $cat->slug]) }}" class="wb-cat-chip">
-                <x-icon :name="$cat->icon" :size="26" />
-                <span>{{ $cat->name }}</span>
-            </a>
-        @endforeach
+        <div class="wb-cat-track">
+            {{-- Rendered twice back to back so the marquee animation (translateX to
+                 exactly -50%) loops seamlessly instead of jumping at the end. --}}
+            @for($i = 0; $i < 2; $i++)
+                @foreach($navCategories ?? [] as $cat)
+                    <a href="{{ route('shop', ['category' => $cat->slug]) }}" class="wb-cat-chip" @if($i === 1) aria-hidden="true" tabindex="-1" @endif>
+                        <x-icon :name="$cat->icon" :size="26" />
+                        <span>{{ $cat->name }}</span>
+                    </a>
+                @endforeach
+            @endfor
+        </div>
     </div>
 </div>
 

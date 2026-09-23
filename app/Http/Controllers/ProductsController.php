@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Product;
 use App\Category;
 use App\Cart;
+use App\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +42,9 @@ public function checkoutIndex(){
     if(!$cart || count($cart->items) === 0){
         return redirect()->route('homepage');
     }
+    if (Setting::bool('orders_disabled')) {
+        return view('orderClosed');
+    }
     return view('orderForm');
 }
 
@@ -48,6 +52,12 @@ public function checkoutIndex(){
 
 
   public function checkoutStore(Request $request){
+      // Defense in depth: the checkout form is hidden behind orderClosed when this is
+      // on, but a direct POST (stale tab, curl) must still be rejected server-side.
+      if (Setting::bool('orders_disabled')) {
+          return redirect()->route('checkout.index');
+      }
+
       $first_name=$request->input('firstname');
       $last_name=$request->input('lastname');
 

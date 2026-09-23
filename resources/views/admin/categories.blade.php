@@ -103,7 +103,7 @@
                             </select>
                             <input form="{{ $childEditId }}" type="number" name="sort_order" value="{{ $child->sort_order }}" class="form-control" style="max-width:80px;" title="Sort order">
                             <input form="{{ $childEditId }}" type="hidden" name="icon" value="{{ $child->icon }}">
-                            <span class="wb-admin__badge">{{ $child->products_count }}</span>
+                            <span class="wb-admin__badge" title="{{ $child->products_count }} product(s) in this subcategory">{{ $child->products_count }}</span>
                             <span class="mono" style="font-size:.72rem;color:var(--ink-faint);">{{ $child->slug }}</span>
                             <button form="{{ $childEditId }}" type="submit" class="wb-admin__icon-btn" title="Save"><x-icon name="check" :size="14" /></button>
                             <form id="{{ $childEditId }}" action="{{ route('admin.categories.update', $child->id) }}" method="post" style="display:none;">

@@ -22,6 +22,102 @@ class AdminProductController extends Controller
 
     }
 
+    public function bulkForm(){
+        return view('admin.productsBulk');
+    }
+
+    /**
+     * CSV columns are deliberately plain (id, sku, name, category, price, stock) so the
+     * same file downloaded here can be edited (just the price column, usually) and
+     * re-uploaded via import() below — id is what ties a row back to a product.
+     */
+    public function export(){
+        $filename = 'products-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['id', 'sku', 'name', 'category', 'price', 'stock']);
+
+            Product::with('category')->orderBy('id')->chunk(200, function ($products) use ($out) {
+                foreach ($products as $product) {
+                    fputcsv($out, [
+                        $product->id,
+                        $product->sku,
+                        $product->name,
+                        $product->category->name ?? '',
+                        $product->price,
+                        $product->stock,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    public function import(Request $request){
+        Validator::make($request->all(), [
+            'csv' => 'required|file|mimes:csv,txt',
+        ])->validate();
+
+        $handle = fopen($request->file('csv')->getRealPath(), 'r');
+        $header = fgetcsv($handle);
+
+        if (!$header) {
+            fclose($handle);
+            return redirect()->route('admin.products.bulk')->withErrors(['csv' => 'The file is empty or not a valid CSV.']);
+        }
+
+        $header = array_map(fn($h) => strtolower(trim($h)), $header);
+        $idCol = array_search('id', $header);
+        $priceCol = array_search('price', $header);
+
+        if ($idCol === false || $priceCol === false) {
+            fclose($handle);
+            return redirect()->route('admin.products.bulk')->withErrors(['csv' => 'The CSV must have an "id" and a "price" column — export the current list first to get the right format.']);
+        }
+
+        $updated = 0;
+        $errors = [];
+        $row = 1;
+
+        while (($data = fgetcsv($handle)) !== false) {
+            $row++;
+            $id = trim($data[$idCol] ?? '');
+            $price = trim($data[$priceCol] ?? '');
+
+            if ($id === '' && $price === '') {
+                continue; // blank row
+            }
+
+            if (!ctype_digit($id)) {
+                $errors[] = "Row {$row}: invalid id \"{$id}\".";
+                continue;
+            }
+
+            if (!is_numeric($price) || $price < 0) {
+                $errors[] = "Row {$row}: invalid price \"{$price}\" for id {$id}.";
+                continue;
+            }
+
+            $product = Product::find($id);
+            if (!$product) {
+                $errors[] = "Row {$row}: no product with id {$id}.";
+                continue;
+            }
+
+            $product->update(['price' => $price]);
+            $updated++;
+        }
+
+        fclose($handle);
+
+        return redirect()->route('admin.products.bulk')
+            ->withsuccess("Updated {$updated} product price(s).")
+            ->with('importErrors', array_slice($errors, 0, 25))
+            ->with('importErrorCount', count($errors));
+    }
+
     public function edit($id){
         $product = Product::with('images')->findOrFail($id);
         $categories = Category::with('children')->roots()->get();

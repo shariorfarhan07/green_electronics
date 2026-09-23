@@ -30,6 +30,11 @@
                 <div class="wb-info-card"><x-icon name="mail" :size="22" /><p>greenelectronicsbd@gmail.com</p></div>
             </div>
         </div>
+
+        <div style="margin-top:2rem;padding-top:1.3rem;border-top:1px solid var(--line);text-align:center;font-size:.8rem;color:var(--ink-faint);">
+            Owned by <a href="https://www.facebook.com/parvez.jahid.2024" target="_blank" rel="noopener">Parvez Jahid</a>
+            &middot; Developed by <a href="https://shariorfarhan.com" target="_blank" rel="noopener">Sharior Farhan</a>
+        </div>
     </div>
 </div>
 

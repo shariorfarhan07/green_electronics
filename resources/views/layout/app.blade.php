@@ -11,7 +11,14 @@
 </head>
 <body>
 
-<div class="wb-topbar d-none d-md-block">Free delivery inside Dhaka on orders above &#2547;2000 &middot; Cash on delivery available nationwide</div>
+@if($ordersDisabled ?? false)
+    <div class="wb-topbar wb-topbar--notice">
+        Online ordering is paused right now &mdash; call <a href="tel:{{ config('store.phone') }}">{{ config('store.phone_display') }}</a>
+        or <a href="https://wa.me/{{ config('store.whatsapp') }}" target="_blank" rel="noopener">WhatsApp us</a> to place your order
+    </div>
+@else
+    <div class="wb-topbar d-none d-md-block">Free delivery inside Dhaka on orders above &#2547;2000 &middot; Cash on delivery available nationwide</div>
+@endif
 
 <header class="wb-header">
     <div class="wb-header__bar">
@@ -36,7 +43,9 @@
                 <span class="wb-header__action-label">{{ auth()->check() ? auth()->user()->name : 'Account' }}</span>
             </a>
             @auth
-                <form action="{{ route('logout') }}" method="post" style="display:inline;">
+                {{-- Below lg, this pushed the Cart icon off the edge of the viewport since
+                     the row has no wrap — the off-canvas menu already has a Logout link. --}}
+                <form action="{{ route('logout') }}" method="post" class="d-none d-lg-inline">
                     @csrf
                     <button type="submit" class="wb-header__action" style="border:none;background:none;" title="Log out">
                         <x-icon name="reply" />

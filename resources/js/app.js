@@ -248,6 +248,69 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Admin: single-file drag-and-drop (CSV import, etc.) — separate from the
+    // multi-image dropzone above since it takes exactly one file and shows its
+    // name rather than a thumbnail grid.
+    document.querySelectorAll('[data-file-dropzone]').forEach(function (zone) {
+        var input = zone.querySelector('input[type="file"]');
+        var prompt = zone.querySelector('[data-file-dropzone-prompt]');
+        var selected = zone.querySelector('[data-file-dropzone-selected]');
+        var nameEl = zone.querySelector('[data-file-dropzone-name]');
+        var clearBtn = zone.querySelector('[data-file-dropzone-clear]');
+        if (!input) return;
+
+        function setFile(file) {
+            if (!file) return;
+            var transfer = new DataTransfer();
+            transfer.items.add(file);
+            input.files = transfer.files;
+            render();
+        }
+
+        function render() {
+            var hasFile = input.files && input.files.length > 0;
+            if (prompt) prompt.style.display = hasFile ? 'none' : '';
+            if (selected) selected.style.display = hasFile ? '' : 'none';
+            if (hasFile && nameEl) nameEl.textContent = input.files[0].name;
+        }
+
+        zone.addEventListener('click', function (e) {
+            if (clearBtn && clearBtn.contains(e.target)) return;
+            input.click();
+        });
+        input.addEventListener('change', render);
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                input.value = '';
+                render();
+            });
+        }
+
+        ['dragenter', 'dragover'].forEach(function (evt) {
+            zone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.add('is-dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(function (evt) {
+            zone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.remove('is-dragover');
+            });
+        });
+        zone.addEventListener('drop', function (e) {
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+                setFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        render();
+    });
+
     // Quantity stepper (visual only unless data-href-base is present)
     document.querySelectorAll('[data-qty]').forEach(function (wrap) {
         var input = wrap.querySelector('input');
